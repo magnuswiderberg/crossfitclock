@@ -1,6 +1,15 @@
 import { useEffect, useState } from 'react'
 import type { Workout } from '../model/types'
-import { loadWorkouts, saveWorkouts, duplicateWorkout, emptyWorkout } from '../model/storage'
+import { compile } from '../model/compile'
+import {
+  loadWorkouts,
+  saveWorkouts,
+  duplicateWorkout,
+  emptyWorkout,
+  loadActiveSession,
+  clearActiveSession,
+} from '../model/storage'
+import type { SessionRestore } from '../engine/useSession'
 import { HomeScreen } from './HomeScreen'
 import { EditScreen } from './EditScreen'
 import { RunScreen } from './RunScreen'
@@ -8,18 +17,42 @@ import { RunScreen } from './RunScreen'
 type View =
   | { name: 'home' }
   | { name: 'edit'; workout: Workout; isNew: boolean }
-  | { name: 'run'; workout: Workout }
+  | { name: 'run'; workout: Workout; restore?: SessionRestore }
+
+/** Reopen a session that was still in progress when the page last unloaded. */
+function initialView(): View {
+  const active = loadActiveSession()
+  if (active) {
+    const total = compile(active.workout).reduce((sum, s) => sum + s.duration, 0)
+    const elapsed = ((active.pausedAt ?? Date.now()) - active.startedAt) / 1000
+    if (elapsed < total) {
+      return {
+        name: 'run',
+        workout: active.workout,
+        restore: { startedAt: active.startedAt, pausedAt: active.pausedAt },
+      }
+    }
+    clearActiveSession()
+  }
+  return { name: 'home' }
+}
 
 export function App() {
   const [workouts, setWorkouts] = useState<Workout[]>(loadWorkouts)
-  const [view, setView] = useState<View>({ name: 'home' })
+  const [view, setView] = useState<View>(initialView)
 
   useEffect(() => {
     saveWorkouts(workouts)
   }, [workouts])
 
   if (view.name === 'run') {
-    return <RunScreen workout={view.workout} onExit={() => setView({ name: 'home' })} />
+    return (
+      <RunScreen
+        workout={view.workout}
+        restore={view.restore}
+        onExit={() => setView({ name: 'home' })}
+      />
+    )
   }
 
   if (view.name === 'edit') {

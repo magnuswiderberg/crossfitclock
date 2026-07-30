@@ -1,11 +1,14 @@
 import { useMemo } from 'react'
 import type { Workout } from '../model/types'
 import { compile, formatTime, type Segment } from '../model/compile'
-import { useSession } from '../engine/useSession'
+import { saveActiveSession, clearActiveSession } from '../model/storage'
+import { useSession, type SessionRestore } from '../engine/useSession'
 import { useWakeLock } from '../engine/wakeLock'
 
 interface Props {
   workout: Workout
+  /** Present when reopening a session that survived a page reload. */
+  restore?: SessionRestore
   onExit: () => void
 }
 
@@ -33,10 +36,21 @@ function nextUpText(seg: Segment, next: Segment | undefined): string {
   return `${prefix}${next.label} ${formatTime(next.duration)}`
 }
 
-export function RunScreen({ workout, onExit }: Props) {
+export function RunScreen({ workout, restore, onExit }: Props) {
   const segments = useMemo(() => compile(workout), [workout])
-  const [snap, controls] = useSession(segments)
+  const [snap, controls] = useSession(segments, {
+    restore,
+    onPersist: (s) => {
+      if (s) saveActiveSession({ workout, startedAt: s.startedAt, pausedAt: s.pausedAt })
+      else clearActiveSession()
+    },
+  })
   useWakeLock(snap.status !== 'done')
+
+  const exit = () => {
+    clearActiveSession()
+    onExit()
+  }
 
   const seg = segments[snap.index]
 
@@ -54,7 +68,7 @@ export function RunScreen({ workout, onExit }: Props) {
           <button className="btn" onClick={controls.restart}>
             Go again
           </button>
-          <button className="btn btn-ghost" onClick={onExit}>
+          <button className="btn btn-ghost" onClick={exit}>
             Back to workouts
           </button>
         </div>
@@ -116,7 +130,7 @@ export function RunScreen({ workout, onExit }: Props) {
           <button className="btn" onClick={controls.restart}>
             Restart
           </button>
-          <button className="btn btn-ghost" onClick={onExit}>
+          <button className="btn btn-ghost" onClick={exit}>
             End workout
           </button>
         </div>

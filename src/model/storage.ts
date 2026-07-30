@@ -2,6 +2,41 @@ import { buildPresets } from './presets'
 import { uid, type Workout } from './types'
 
 const KEY = 'crossfitclock.workouts.v1'
+const SESSION_KEY = 'crossfitclock.session.v1'
+
+/**
+ * The in-flight session, persisted so a page reload (or PWA restart) drops
+ * the user back into the running clock. The workout is snapshotted whole so
+ * later edits or deletes can't corrupt an active session.
+ */
+export interface ActiveSession {
+  workout: Workout
+  /** Epoch ms when segment 0 started (shifted forward for time spent paused). */
+  startedAt: number
+  /** Epoch ms when the session was paused, or null if it was running. */
+  pausedAt: number | null
+}
+
+export function loadActiveSession(): ActiveSession | null {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY)
+    if (!raw) return null
+    const s = JSON.parse(raw) as ActiveSession
+    if (typeof s?.startedAt === 'number' && Array.isArray(s.workout?.blocks)) return s
+  } catch {
+    // Corrupt record — drop it below.
+  }
+  clearActiveSession()
+  return null
+}
+
+export function saveActiveSession(session: ActiveSession): void {
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session))
+}
+
+export function clearActiveSession(): void {
+  localStorage.removeItem(SESSION_KEY)
+}
 
 export function loadWorkouts(): Workout[] {
   try {

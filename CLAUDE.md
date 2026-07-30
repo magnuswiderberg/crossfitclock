@@ -38,11 +38,20 @@ https://claude.ai/code/artifact/f9493707-f78e-4004-8377-cba3b34e32bb
   Trailing rests are trimmed so sessions end on effort.
 - Storage: localStorage key `crossfitclock.workouts.v1`; presets reseed when
   it's empty. A remote backend (e.g. Supabase) is a possible later addition.
+- The in-flight session persists to `crossfitclock.session.v1` (workout
+  snapshot + wall-clock anchor) and is restored on load, so a reload or PWA
+  restart drops back into the running clock. Cleared on finish/exit.
 
 ## Working notes
 
 - Open todos and feature ideas live in `initials/todos.md` (the `initials/`
   folder is gitignored reference material — the original prompt and design
   pitch live there too).
-- Known refinement: beeps fire from the rAF loop; pre-scheduling them on the
-  AudioContext clock would survive tab throttling.
+- Sessions are anchored to a single `Date.now()` epoch (not
+  `performance.now()`, which can freeze during device sleep); the current
+  segment is derived from total elapsed each tick.
+- Beeps are pre-scheduled on the AudioContext clock (whole session up front,
+  cancelled/rescheduled on pause/resume/restart), so they survive rAF
+  throttling in background tabs. They are re-anchored on
+  `visibilitychange → visible` (the audio clock stalls while the OS suspends
+  it) and on the first tap after a reload (audio needs a user gesture).

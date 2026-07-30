@@ -37,7 +37,7 @@ export function HomeScreen({ workouts, onStart, onEdit, onNew, onDuplicate, onDe
               className="btn btn-primary"
               onClick={() => {
                 // AudioContext must be created inside a user gesture.
-                initAudio()
+                void initAudio()
                 onStart(w)
               }}
             >

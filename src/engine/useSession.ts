@@ -1,7 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { Segment } from '../model/compile'
 import { COUNTDOWN_SECONDS } from '../model/types'
-import { beepCountdown, beepFinish, beepGo, beepRest } from './audio'
+import {
+  audioRunning,
+  beepCountdown,
+  beepFinish,
+  beepGo,
+  beepRest,
+  cancelScheduledBeeps,
+  initAudio,
+} from './audio'
 
 export type SessionStatus = 'running' | 'paused' | 'done'
 
@@ -23,12 +31,33 @@ export interface SessionControls {
   restart: () => void
 }
 
+/** Wall-clock anchor of a session — enough to restore it after a reload. */
+export interface SessionRestore {
+  /** Epoch ms when segment 0 started (shifted forward for time spent paused). */
+  startedAt: number
+  /** Epoch ms when the session was paused, or null if it was running. */
+  pausedAt: number | null
+}
+
+export interface SessionOptions {
+  /** Resume a previously persisted session instead of starting fresh. */
+  restore?: SessionRestore
+  /** Called whenever the anchor changes; null when the session finishes. */
+  onPersist?: (state: SessionRestore | null) => void
+}
+
 /**
- * Walks the compiled timeline. Time is measured against performance.now()
- * from the segment's absolute start, so display and beeps never drift the
- * way accumulated setInterval ticks do.
+ * Walks the compiled timeline. The session is anchored to a single Date.now()
+ * epoch and the current segment is derived from total elapsed time, so the
+ * clock survives rAF throttling, device sleep, and even a page reload (via
+ * restore/onPersist). Beeps are not fired from the rAF loop: the whole
+ * session's beeps are pre-scheduled on the AudioContext clock, and re-anchored
+ * whenever that clock may have stalled (tab shown again, audio unlocked).
  */
-export function useSession(segments: Segment[]): [SessionSnapshot, SessionControls] {
+export function useSession(
+  segments: Segment[],
+  opts?: SessionOptions,
+): [SessionSnapshot, SessionControls] {
   const totals = useMemo(() => {
     let acc = 0
     const starts = segments.map((s) => {
@@ -39,91 +68,157 @@ export function useSession(segments: Segment[]): [SessionSnapshot, SessionContro
     return { starts, total: acc }
   }, [segments])
 
-  const [snap, setSnap] = useState<SessionSnapshot>(() => ({
-    status: segments.length > 0 ? 'running' : 'done',
-    index: 0,
-    remaining: segments[0]?.duration ?? 0,
-    progress: 0,
-    elapsedTotal: 0,
-    countdownActive: false,
-  }))
+  const persistRef = useRef(opts?.onPersist)
+  persistRef.current = opts?.onPersist
+
+  // Frozen at first render: restore describes a moment, not a live input.
+  const [restore] = useState(() => opts?.restore ?? null)
+
+  /** Segment position at `elapsed` seconds into the session; null = finished. */
+  const locate = useCallback(
+    (elapsed: number) => {
+      if (elapsed >= totals.total || segments.length === 0) return null
+      let index = 0
+      while (index + 1 < segments.length && totals.starts[index + 1] <= elapsed) index++
+      return { index, remaining: totals.starts[index] + segments[index].duration - elapsed }
+    },
+    [segments, totals],
+  )
+
+  const [snap, setSnap] = useState<SessionSnapshot>(() => {
+    const startedAt = restore?.startedAt ?? Date.now()
+    const elapsed = restore ? ((restore.pausedAt ?? Date.now()) - startedAt) / 1000 : 0
+    const loc = locate(elapsed)
+    if (!loc) {
+      return {
+        status: 'done',
+        index: Math.max(0, segments.length - 1),
+        remaining: 0,
+        progress: 1,
+        elapsedTotal: totals.total,
+        countdownActive: false,
+      }
+    }
+    return {
+      status: restore?.pausedAt != null ? 'paused' : 'running',
+      index: loc.index,
+      remaining: loc.remaining,
+      progress: 1 - loc.remaining / segments[loc.index].duration,
+      elapsedTotal: elapsed,
+      countdownActive: false,
+    }
+  })
 
   const ref = useRef({
     status: 'running' as SessionStatus,
-    index: 0,
-    segStartMs: 0,
+    startMs: 0,
     pausedAtMs: 0,
-    firedAt2: false,
-    firedAt1: false,
     raf: 0,
   })
+
+  /**
+   * Queue every remaining beep in the session on the audio clock, starting
+   * from `remaining` seconds left in segment `index`. Countdown beeps whose
+   * moment has already passed (resume mid-countdown) are skipped.
+   */
+  const scheduleBeeps = useCallback(
+    (index: number, remaining: number) => {
+      cancelScheduledBeeps()
+      let boundary = remaining
+      for (let i = index; i < segments.length; i++) {
+        if (i > index) boundary += segments[i].duration
+        const next = segments[i + 1]
+        if (!next) {
+          beepFinish(boundary)
+        } else if (next.type === 'work') {
+          for (let s = COUNTDOWN_SECONDS; s >= 1; s--) {
+            if (boundary - s >= 0) beepCountdown(boundary - s)
+          }
+          beepGo(boundary)
+        } else {
+          beepRest(boundary)
+        }
+      }
+    },
+    [segments],
+  )
+
+  /** Re-anchor all pending beeps to the current wall-clock position. */
+  const rescheduleBeeps = useCallback(() => {
+    const r = ref.current
+    if (r.status !== 'running') return
+    const loc = locate((Date.now() - r.startMs) / 1000)
+    if (loc) scheduleBeeps(loc.index, loc.remaining)
+  }, [locate, scheduleBeeps])
 
   const tick = useCallback(() => {
     const r = ref.current
     if (r.status !== 'running') return
-    let seg = segments[r.index]
-    let remaining = seg.duration - (performance.now() - r.segStartMs) / 1000
+    const elapsed = (Date.now() - r.startMs) / 1000
+    const loc = locate(elapsed)
 
-    while (remaining <= 0) {
-      const nextIndex = r.index + 1
-      if (nextIndex >= segments.length) {
-        r.status = 'done'
-        beepFinish()
-        setSnap({
-          status: 'done',
-          index: r.index,
-          remaining: 0,
-          progress: 1,
-          elapsedTotal: totals.total,
-          countdownActive: false,
-        })
-        return
-      }
-      const next = segments[nextIndex]
-      if (next.type === 'work') beepGo()
-      else beepRest()
-      r.segStartMs += seg.duration * 1000
-      r.index = nextIndex
-      r.firedAt2 = false
-      r.firedAt1 = false
-      seg = next
-      remaining = seg.duration - (performance.now() - r.segStartMs) / 1000
+    if (!loc) {
+      r.status = 'done'
+      persistRef.current?.(null)
+      setSnap({
+        status: 'done',
+        index: Math.max(0, segments.length - 1),
+        remaining: 0,
+        progress: 1,
+        elapsedTotal: totals.total,
+        countdownActive: false,
+      })
+      return
     }
 
-    const workIsNext = segments[r.index + 1]?.type === 'work'
-    if (workIsNext) {
-      if (remaining <= COUNTDOWN_SECONDS && !r.firedAt2) {
-        r.firedAt2 = true
-        beepCountdown()
-      }
-      if (remaining <= 1 && !r.firedAt1) {
-        r.firedAt1 = true
-        beepCountdown()
-      }
-    }
-
+    const seg = segments[loc.index]
+    const workIsNext = segments[loc.index + 1]?.type === 'work'
     setSnap({
       status: 'running',
-      index: r.index,
-      remaining,
-      progress: 1 - remaining / seg.duration,
-      elapsedTotal: totals.starts[r.index] + (seg.duration - remaining),
-      countdownActive: workIsNext && remaining <= COUNTDOWN_SECONDS,
+      index: loc.index,
+      remaining: loc.remaining,
+      progress: 1 - loc.remaining / seg.duration,
+      elapsedTotal: elapsed,
+      countdownActive: workIsNext && loc.remaining <= COUNTDOWN_SECONDS,
     })
     r.raf = requestAnimationFrame(tick)
-  }, [segments, totals])
+  }, [segments, totals, locate])
 
   useEffect(() => {
     const r = ref.current
     if (segments.length === 0) return
-    r.status = 'running'
-    r.index = 0
-    r.segStartMs = performance.now()
-    r.firedAt2 = false
-    r.firedAt1 = false
-    r.raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(r.raf)
-  }, [segments, tick])
+    r.startMs = restore?.startedAt ?? Date.now()
+    r.pausedAtMs = restore?.pausedAt ?? 0
+    const startPaused = restore?.pausedAt != null
+    r.status = startPaused ? 'paused' : 'running'
+    persistRef.current?.({ startedAt: r.startMs, pausedAt: startPaused ? r.pausedAtMs : null })
+    if (!startPaused) {
+      rescheduleBeeps()
+      r.raf = requestAnimationFrame(tick)
+    }
+
+    // The audio clock stalls while the OS suspends it (screen lock, deep
+    // background) even though wall-clock time keeps passing, so every
+    // scheduled beep would land late. Re-anchor them when the tab returns.
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') rescheduleBeeps()
+    }
+    // After a reload there has been no user gesture yet, so the AudioContext
+    // can't start. Unlock it on the first tap and schedule the beeps then.
+    const unlock = () => {
+      if (audioRunning()) return
+      void initAudio().then(rescheduleBeeps)
+    }
+    document.addEventListener('visibilitychange', onVisibility)
+    window.addEventListener('pointerdown', unlock)
+
+    return () => {
+      cancelAnimationFrame(r.raf)
+      cancelScheduledBeeps()
+      document.removeEventListener('visibilitychange', onVisibility)
+      window.removeEventListener('pointerdown', unlock)
+    }
+  }, [segments, tick, rescheduleBeeps, restore])
 
   const controls = useMemo<SessionControls>(
     () => ({
@@ -131,29 +226,32 @@ export function useSession(segments: Segment[]): [SessionSnapshot, SessionContro
         const r = ref.current
         if (r.status !== 'running') return
         r.status = 'paused'
-        r.pausedAtMs = performance.now()
+        r.pausedAtMs = Date.now()
         cancelAnimationFrame(r.raf)
+        cancelScheduledBeeps()
+        persistRef.current?.({ startedAt: r.startMs, pausedAt: r.pausedAtMs })
         setSnap((s) => ({ ...s, status: 'paused' }))
       },
       resume: () => {
         const r = ref.current
         if (r.status !== 'paused') return
-        r.segStartMs += performance.now() - r.pausedAtMs
+        r.startMs += Date.now() - r.pausedAtMs
         r.status = 'running'
+        persistRef.current?.({ startedAt: r.startMs, pausedAt: null })
+        rescheduleBeeps()
         r.raf = requestAnimationFrame(tick)
       },
       restart: () => {
         const r = ref.current
         cancelAnimationFrame(r.raf)
         r.status = 'running'
-        r.index = 0
-        r.segStartMs = performance.now()
-        r.firedAt2 = false
-        r.firedAt1 = false
+        r.startMs = Date.now()
+        persistRef.current?.({ startedAt: r.startMs, pausedAt: null })
+        rescheduleBeeps()
         r.raf = requestAnimationFrame(tick)
       },
     }),
-    [tick],
+    [tick, rescheduleBeeps],
   )
 
   return [snap, controls]
