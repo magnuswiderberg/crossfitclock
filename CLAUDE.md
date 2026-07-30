@@ -55,3 +55,6 @@ https://claude.ai/code/artifact/f9493707-f78e-4004-8377-cba3b34e32bb
   throttling in background tabs. They are re-anchored on
   `visibilitychange → visible` (the audio clock stalls while the OS suspends
   it) and on the first tap after a reload (audio needs a user gesture).
+- `navigator.audioSession.type = 'ambient'` so beeps mix with the user's
+  music (Spotify/YouTube) instead of pausing or ducking it. Trade-off: iOS
+  mutes ambient audio while the ringer switch is on silent.

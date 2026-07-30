@@ -6,10 +6,21 @@
  * AudioContext clock, so a whole session's worth can be queued up front and
  * still fire on time while rAF is throttled in a backgrounded tab.
  */
+declare global {
+  interface Navigator {
+    /** Audio Session API (Safari 17+; feature-detected elsewhere). */
+    audioSession?: { type: string }
+  }
+}
+
 let ctx: AudioContext | null = null
 const pending = new Set<OscillatorNode>()
 
 export async function initAudio(): Promise<void> {
+  // Mix with, rather than interrupt, music the user has playing (Spotify,
+  // YouTube): 'ambient' keeps other audio at full volume. Trade-off: iOS
+  // mutes ambient audio while the ringer switch is on silent.
+  if (navigator.audioSession) navigator.audioSession.type = 'ambient'
   if (!ctx) ctx = new AudioContext()
   if (ctx.state === 'suspended') {
     try {

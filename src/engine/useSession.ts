@@ -198,10 +198,12 @@ export function useSession(
     }
 
     // The audio clock stalls while the OS suspends it (screen lock, deep
-    // background) even though wall-clock time keeps passing, so every
-    // scheduled beep would land late. Re-anchor them when the tab returns.
+    // background, another app grabbing the audio session) even though
+    // wall-clock time keeps passing, so every scheduled beep would land
+    // late. When the tab returns, try to resume the context (iOS leaves it
+    // 'interrupted' after e.g. starting music) and re-anchor the beeps.
     const onVisibility = () => {
-      if (document.visibilityState === 'visible') rescheduleBeeps()
+      if (document.visibilityState === 'visible') void initAudio().then(rescheduleBeeps)
     }
     // After a reload there has been no user gesture yet, so the AudioContext
     // can't start. Unlock it on the first tap and schedule the beeps then.
