@@ -16,7 +16,6 @@ const PHASE_WORD: Record<Segment['type'], string> = {
   prep: 'Get ready',
   work: 'Work',
   rest: 'Rest',
-  roundRest: 'Round rest',
   setRest: 'Set rest',
 }
 
@@ -24,7 +23,6 @@ const PHASE_CLASS: Record<Segment['type'], string> = {
   prep: 'run-prep',
   work: 'run-work',
   rest: 'run-rest',
-  roundRest: 'run-rest',
   setRest: 'run-rest',
 }
 

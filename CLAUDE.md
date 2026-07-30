@@ -29,7 +29,10 @@ https://claude.ai/code/artifact/f9493707-f78e-4004-8377-cba3b34e32bb
 - Naming: a saved definition is a **Workout**; running one is a **Session**.
 - Hierarchy: Workout → Blocks → Sets → Intervals. Labels are required on
   blocks and sets, optional on intervals.
-- Sets support both `restBetweenRounds` and `restAfterSet`.
+- Sets have a single `restAfterSet` (rest after the set/block). Rest between
+  rounds is expressed via the last interval's own `rest`, which fires at the
+  end of every round — a separate `restBetweenRounds` was removed as
+  redundant.
 - Countdowns are hardcoded: 5 s get-ready before the session
   (`PREP_SECONDS`), beeps 2 s before each work interval
   (`COUNTDOWN_SECONDS`) — see `src/model/types.ts`.

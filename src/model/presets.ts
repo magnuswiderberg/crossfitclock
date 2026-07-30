@@ -1,4 +1,4 @@
-import { uid, type Workout } from './types'
+﻿import { uid, type Workout } from './types'
 
 function interval(work: number, rest: number, label?: string) {
   return { id: uid(), label, work, rest }
@@ -20,7 +20,6 @@ export function buildPresets(): Workout[] {
               label: '20 / 10',
               rounds: 8,
               intervals: [interval(20, 10)],
-              restBetweenRounds: 0,
               restAfterSet: 0,
             },
           ],
@@ -41,7 +40,6 @@ export function buildPresets(): Workout[] {
               label: 'Tabata A',
               rounds: 8,
               intervals: [interval(20, 10)],
-              restBetweenRounds: 0,
               restAfterSet: 60,
             },
             {
@@ -49,7 +47,6 @@ export function buildPresets(): Workout[] {
               label: 'Tabata B',
               rounds: 8,
               intervals: [interval(20, 10)],
-              restBetweenRounds: 0,
               restAfterSet: 0,
             },
           ],
@@ -70,7 +67,6 @@ export function buildPresets(): Workout[] {
               label: 'Easy pace',
               rounds: 3,
               intervals: [interval(30, 10)],
-              restBetweenRounds: 0,
               restAfterSet: 30,
             },
           ],
@@ -86,9 +82,8 @@ export function buildPresets(): Workout[] {
               intervals: [
                 interval(40, 15, 'Burpees'),
                 interval(40, 15, 'Kettlebell swings'),
-                interval(40, 15, 'Air squats'),
+                interval(40, 60, 'Air squats'),
               ],
-              restBetweenRounds: 45,
               restAfterSet: 60,
             },
           ],
@@ -102,7 +97,6 @@ export function buildPresets(): Workout[] {
               label: 'Holds',
               rounds: 4,
               intervals: [interval(40, 5)],
-              restBetweenRounds: 0,
               restAfterSet: 0,
             },
           ],

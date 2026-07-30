@@ -13,9 +13,10 @@ export interface WorkoutSet {
   label: string
   rounds: number
   intervals: Interval[]
-  /** Extra rest inserted between rounds (not after the last round). */
-  restBetweenRounds: number
-  /** Rest after the whole set completes. */
+  /**
+   * Rest after the whole set completes. Rest between rounds is expressed via
+   * the last interval's own rest, which fires at the end of every round.
+   */
   restAfterSet: number
 }
 

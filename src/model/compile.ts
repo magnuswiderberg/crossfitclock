@@ -1,6 +1,6 @@
 import { PREP_SECONDS, type Workout } from './types'
 
-export type SegmentType = 'prep' | 'work' | 'rest' | 'roundRest' | 'setRest'
+export type SegmentType = 'prep' | 'work' | 'rest' | 'setRest'
 
 /**
  * One entry in the flat session timeline. The nested Workout model is for
@@ -23,7 +23,6 @@ export interface Segment {
 
 const REST_LABELS: Record<Exclude<SegmentType, 'work' | 'prep'>, string> = {
   rest: 'Rest',
-  roundRest: 'Round rest',
   setRest: 'Set rest',
 }
 
@@ -61,16 +60,6 @@ export function compile(workout: Workout): Segment[] {
             })
           }
         })
-        if (round < set.rounds && set.restBetweenRounds > 0) {
-          segments.push({
-            ...base,
-            type: 'roundRest',
-            duration: set.restBetweenRounds,
-            label: REST_LABELS.roundRest,
-            round,
-            intervalIndex: set.intervals.length - 1,
-          })
-        }
       }
       if (set.restAfterSet > 0) {
         segments.push({

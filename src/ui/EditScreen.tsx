@@ -168,11 +168,6 @@ export function EditScreen({ workout, onSave, onCancel }: Props) {
 
               <div className="row">
                 <NumField
-                  label="Round rest s"
-                  value={set.restBetweenRounds}
-                  onChange={(n) => update((w) => (w.blocks[bi].sets[si].restBetweenRounds = n))}
-                />
-                <NumField
                   label="Set rest s"
                   value={set.restAfterSet}
                   onChange={(n) => update((w) => (w.blocks[bi].sets[si].restAfterSet = n))}
@@ -201,7 +196,6 @@ export function EditScreen({ workout, onSave, onCancel }: Props) {
                   label: `Set ${w.blocks[bi].sets.length + 1}`,
                   rounds: 8,
                   intervals: [{ id: uid(), work: 20, rest: 10 }],
-                  restBetweenRounds: 0,
                   restAfterSet: 0,
                 }),
               )
@@ -225,7 +219,6 @@ export function EditScreen({ workout, onSave, onCancel }: Props) {
                   label: 'Set 1',
                   rounds: 8,
                   intervals: [{ id: uid(), work: 20, rest: 10 }],
-                  restBetweenRounds: 0,
                   restAfterSet: 0,
                 },
               ],

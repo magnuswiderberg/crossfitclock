@@ -86,7 +86,6 @@ export function emptyWorkout(): Workout {
             label: 'Set 1',
             rounds: 8,
             intervals: [{ id: uid(), work: 20, rest: 10 }],
-            restBetweenRounds: 0,
             restAfterSet: 0,
           },
         ],
