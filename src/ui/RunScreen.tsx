@@ -89,6 +89,31 @@ export function RunScreen({ workout, restore, onExit }: Props) {
     >
       <div className="run-fill" style={{ height: `${snap.progress * 100}%` }} />
 
+      {import.meta.env.DEV && (
+        <button
+          aria-label="Dev: jump to next sound"
+          style={{
+            position: 'absolute',
+            top: 56,
+            right: 12,
+            zIndex: 5,
+            padding: '4px 10px',
+            font: '600 11px/1.4 monospace',
+            color: '#fff',
+            background: 'rgba(0,0,0,0.4)',
+            border: '1px dashed rgba(255,255,255,0.5)',
+            borderRadius: 6,
+            cursor: 'pointer',
+          }}
+          onClick={(e) => {
+            e.stopPropagation()
+            controls.devJump()
+          }}
+        >
+          ⏭ sound
+        </button>
+      )}
+
       <div className="run-top">
         <span>{PHASE_WORD[seg.type]}</span>
         <span className="where">

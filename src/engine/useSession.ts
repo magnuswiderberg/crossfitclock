@@ -31,6 +31,11 @@ export interface SessionControls {
   restart: () => void
   /** Jump to the start of the next segment (or finish, on the last one). */
   skip: () => void
+  /**
+   * Dev-only: jump to just before the next sound moment (countdown + boundary
+   * beep), so repeated presses walk the session sound-to-sound in real time.
+   */
+  devJump: () => void
 }
 
 /** Wall-clock anchor of a session — enough to restore it after a reload. */
@@ -278,8 +283,31 @@ export function useSession(
         cancelAnimationFrame(r.raf)
         r.raf = requestAnimationFrame(tick)
       },
+      devJump: () => {
+        const r = ref.current
+        if (r.status !== 'running') return
+        const elapsed = (Date.now() - r.startMs) / 1000
+        const lead = COUNTDOWN_SECONDS + 1
+        // First segment-end boundary whose lead-in is still ahead of now.
+        // Landing at (boundary - lead) leaves the pre-scheduled countdown and
+        // announcement beeps to play out naturally; segments shorter than the
+        // lead are entered at their start instead.
+        for (let i = 0; i < segments.length; i++) {
+          const target = Math.max(
+            totals.starts[i],
+            totals.starts[i] + segments[i].duration - lead,
+          )
+          if (target <= elapsed + 0.05) continue
+          r.startMs -= (target - elapsed) * 1000
+          persistRef.current?.({ startedAt: r.startMs, pausedAt: null })
+          rescheduleBeeps()
+          cancelAnimationFrame(r.raf)
+          r.raf = requestAnimationFrame(tick)
+          return
+        }
+      },
     }),
-    [tick, rescheduleBeeps, locate, segments, scheduleBeeps],
+    [tick, rescheduleBeeps, locate, segments, scheduleBeeps, totals],
   )
 
   return [snap, controls]
