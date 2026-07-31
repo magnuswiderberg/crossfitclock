@@ -116,7 +116,19 @@ export function RunScreen({ workout, restore, onExit }: Props) {
 
       <div className="run-next">
         <span>Next</span>
-        <span>{nextUpText(seg, next)}</span>
+        <span className="next-text">{nextUpText(seg, next)}</span>
+        <button
+          className="run-skip"
+          aria-label="Skip to next interval"
+          onClick={(e) => {
+            e.stopPropagation()
+            controls.skip()
+          }}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 4l10 8-10 8V4zm12 0h3v16h-3z" fill="currentColor" />
+          </svg>
+        </button>
       </div>
 
       {snap.status === 'paused' && (

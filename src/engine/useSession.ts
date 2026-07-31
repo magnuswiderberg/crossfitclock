@@ -29,6 +29,8 @@ export interface SessionControls {
   pause: () => void
   resume: () => void
   restart: () => void
+  /** Jump to the start of the next segment (or finish, on the last one). */
+  skip: () => void
 }
 
 /** Wall-clock anchor of a session — enough to restore it after a reload. */
@@ -252,8 +254,32 @@ export function useSession(
         rescheduleBeeps()
         r.raf = requestAnimationFrame(tick)
       },
+      skip: () => {
+        const r = ref.current
+        if (r.status !== 'running') return
+        const loc = locate((Date.now() - r.startMs) / 1000)
+        if (!loc) return
+        // Shifting the anchor back by the remaining time lands elapsed exactly
+        // on the next boundary; tick, persistence and restore all derive from
+        // the anchor, so nothing else needs to move.
+        r.startMs -= loc.remaining * 1000
+        persistRef.current?.({ startedAt: r.startMs, pausedAt: null })
+        const next = segments[loc.index + 1]
+        if (next) {
+          // scheduleBeeps clears the old queue, so it must run before the
+          // announcement beep or it would silence it too.
+          scheduleBeeps(loc.index + 1, next.duration)
+          if (next.type === 'work') beepGo()
+          else beepRest()
+        } else {
+          cancelScheduledBeeps()
+          beepFinish()
+        }
+        cancelAnimationFrame(r.raf)
+        r.raf = requestAnimationFrame(tick)
+      },
     }),
-    [tick, rescheduleBeeps],
+    [tick, rescheduleBeeps, locate, segments, scheduleBeeps],
   )
 
   return [snap, controls]

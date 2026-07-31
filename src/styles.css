@@ -281,11 +281,43 @@ input[type='number'] {
   background: rgba(0, 0, 0, 0.32);
   padding: 14px 20px calc(14px + env(safe-area-inset-bottom));
   display: flex;
-  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+}
+
+.run-next .next-text {
+  flex: 1;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.run-skip {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -12px 0;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.run-skip:active {
+  background: rgba(255, 255, 255, 0.32);
+}
+
+.run-skip svg {
+  width: 18px;
+  height: 18px;
 }
 
 .run.countdown::after {
