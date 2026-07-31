@@ -76,7 +76,7 @@ export function App() {
       onStart={(w) => setView({ name: 'run', workout: w })}
       onEdit={(w) => setView({ name: 'edit', workout: w, isNew: false })}
       onNew={() => setView({ name: 'edit', workout: emptyWorkout(), isNew: true })}
-      onDuplicate={(w) => setWorkouts((list) => [...list, duplicateWorkout(w)])}
+      onDuplicate={(w) => setView({ name: 'edit', workout: duplicateWorkout(w), isNew: true })}
       onDelete={(w) => setWorkouts((list) => list.filter((x) => x.id !== w.id))}
     />
   )

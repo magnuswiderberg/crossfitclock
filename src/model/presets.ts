@@ -10,6 +10,7 @@ export function buildPresets(): Workout[] {
       id: uid(),
       name: 'Classic Tabata',
       version: 1,
+      preset: true,
       blocks: [
         {
           id: uid(),
@@ -30,6 +31,7 @@ export function buildPresets(): Workout[] {
       id: uid(),
       name: 'Double Tabata',
       version: 1,
+      preset: true,
       blocks: [
         {
           id: uid(),
@@ -57,6 +59,7 @@ export function buildPresets(): Workout[] {
       id: uid(),
       name: 'Full Session',
       version: 1,
+      preset: true,
       blocks: [
         {
           id: uid(),

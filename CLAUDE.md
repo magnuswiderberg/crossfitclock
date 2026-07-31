@@ -40,7 +40,10 @@ https://claude.ai/code/artifact/f9493707-f78e-4004-8377-cba3b34e32bb
   `src/model/compile.ts` flattens it to a segment timeline the runner walks.
   Trailing rests are trimmed so sessions end on effort.
 - Storage: localStorage key `crossfitclock.workouts.v1`; presets reseed when
-  it's empty. A remote backend (e.g. Supabase) is a possible later addition.
+  it's empty. Presets carry `preset: true` and are read-only in the UI (no
+  edit/delete — Copy is the customize path); `loadWorkouts` re-flags legacy
+  stored presets by name, and Copy opens the duplicate straight in the editor
+  as a new workout (only saved on Save). A remote backend (e.g. Supabase) is a possible later addition.
 - The in-flight session persists to `crossfitclock.session.v1` (workout
   snapshot + wall-clock anchor) and is restored on load, so a reload or PWA
   restart drops back into the running clock. Cleared on finish/exit.

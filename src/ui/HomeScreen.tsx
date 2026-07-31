@@ -31,7 +31,10 @@ export function HomeScreen({ workouts, onStart, onEdit, onNew, onDuplicate, onDe
       {workouts.map((w) => (
         <div key={w.id} className="workout-card">
           <h2>{w.name}</h2>
-          <div className="workout-meta">{describe(w)}</div>
+          <div className="workout-meta">
+            {describe(w)}
+            {w.preset && <span className="preset-tag">Preset</span>}
+          </div>
           <div className="workout-actions">
             <button
               className="btn btn-primary"
@@ -43,21 +46,27 @@ export function HomeScreen({ workouts, onStart, onEdit, onNew, onDuplicate, onDe
             >
               Start
             </button>
-            <button className="btn" onClick={() => onEdit(w)}>
-              Edit
-            </button>
+            {!w.preset && (
+              <button className="btn" onClick={() => onEdit(w)}>
+                Edit
+              </button>
+            )}
             <button className="btn btn-ghost" onClick={() => onDuplicate(w)}>
               Copy
             </button>
-            <span className="spacer" />
-            <button
-              className="btn btn-danger"
-              onClick={() => {
-                if (window.confirm(`Delete "${w.name}"?`)) onDelete(w)
-              }}
-            >
-              Delete
-            </button>
+            {!w.preset && (
+              <>
+                <span className="spacer" />
+                <button
+                  className="btn btn-danger"
+                  onClick={() => {
+                    if (window.confirm(`Delete "${w.name}"?`)) onDelete(w)
+                  }}
+                >
+                  Delete
+                </button>
+              </>
+            )}
           </div>
         </div>
       ))}

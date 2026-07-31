@@ -43,7 +43,7 @@ export function loadWorkouts(): Workout[] {
     const raw = localStorage.getItem(KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as Workout[]
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed
+      if (Array.isArray(parsed) && parsed.length > 0) return markLegacyPresets(parsed)
     }
   } catch {
     // Corrupt storage falls through to a fresh seed.
@@ -51,6 +51,18 @@ export function loadWorkouts(): Workout[] {
   const presets = buildPresets()
   saveWorkouts(presets)
   return presets
+}
+
+/**
+ * Storage seeded before the `preset` flag existed holds unflagged presets.
+ * Re-flag them by name (copies are safe — they get a "(copy)" suffix).
+ */
+function markLegacyPresets(workouts: Workout[]): Workout[] {
+  const presetNames = new Set(buildPresets().map((p) => p.name))
+  for (const w of workouts) {
+    if (w.preset === undefined && presetNames.has(w.name)) w.preset = true
+  }
+  return workouts
 }
 
 export function saveWorkouts(workouts: Workout[]): void {
@@ -61,6 +73,7 @@ export function duplicateWorkout(workout: Workout): Workout {
   const copy: Workout = JSON.parse(JSON.stringify(workout))
   copy.id = uid()
   copy.name = `${workout.name} (copy)`
+  delete copy.preset
   for (const block of copy.blocks) {
     block.id = uid()
     for (const set of block.sets) {

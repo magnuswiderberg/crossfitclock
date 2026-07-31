@@ -33,6 +33,8 @@ export interface Workout {
   name: string
   version: 1
   blocks: Block[]
+  /** Built-in workouts are read-only: no edit, no delete. Copy to customize. */
+  preset?: boolean
 }
 
 /** Countdown before the very first interval of a session. */

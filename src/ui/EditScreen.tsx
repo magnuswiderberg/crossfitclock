@@ -60,7 +60,7 @@ export function EditScreen({ workout, onSave, onCancel }: Props) {
   }, [draft])
 
   return (
-    <div className="screen">
+    <div className="screen edit-screen">
       <div className="screen-head">
         <button className="btn btn-ghost" onClick={onCancel}>
           Cancel
