@@ -29,7 +29,7 @@ export function buildPresets(): Workout[] {
     },
     {
       id: uid(),
-      name: 'Double Tabata',
+      name: 'Fight Gone Bad',
       version: 1,
       preset: true,
       blocks: [
@@ -39,17 +39,16 @@ export function buildPresets(): Workout[] {
           sets: [
             {
               id: uid(),
-              label: 'Tabata A',
-              rounds: 8,
-              intervals: [interval(20, 10)],
+              label: '5 stations',
+              rounds: 3,
+              intervals: [
+                interval(60, 0, 'Wall balls'),
+                interval(60, 0, 'Sumo deadlift high pulls'),
+                interval(60, 0, 'Box jumps'),
+                interval(60, 0, 'Push press'),
+                interval(60, 0, 'Row (calories)'),
+              ],
               restAfterSet: 60,
-            },
-            {
-              id: uid(),
-              label: 'Tabata B',
-              rounds: 8,
-              intervals: [interval(20, 10)],
-              restAfterSet: 0,
             },
           ],
         },

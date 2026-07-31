@@ -43,7 +43,7 @@ export function loadWorkouts(): Workout[] {
     const raw = localStorage.getItem(KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as Workout[]
-      if (Array.isArray(parsed) && parsed.length > 0) return markLegacyPresets(parsed)
+      if (Array.isArray(parsed) && parsed.length > 0) return syncPresets(markLegacyPresets(parsed))
     }
   } catch {
     // Corrupt storage falls through to a fresh seed.
@@ -63,6 +63,26 @@ function markLegacyPresets(workouts: Workout[]): Workout[] {
     if (w.preset === undefined && presetNames.has(w.name)) w.preset = true
   }
   return workouts
+}
+
+/**
+ * Presets are read-only, so stored copies can be swapped for the current
+ * definitions: removed ones disappear, new ones appear, and content tweaks
+ * propagate. Unchanged presets keep their stored entry (stable ids, no
+ * rewrite); user workouts pass through untouched.
+ */
+function syncPresets(workouts: Workout[]): Workout[] {
+  const strip = (w: Workout) => JSON.stringify(w, (key, value) => (key === 'id' ? undefined : value))
+  const storedByName = new Map(workouts.filter((w) => w.preset).map((w) => [w.name, w]))
+  const presets = buildPresets().map((p) => {
+    const stored = storedByName.get(p.name)
+    return stored && strip(stored) === strip(p) ? stored : p
+  })
+  const synced = [...presets, ...workouts.filter((w) => !w.preset)]
+  if (synced.length !== workouts.length || synced.some((w, i) => w !== workouts[i])) {
+    saveWorkouts(synced)
+  }
+  return synced
 }
 
 export function saveWorkouts(workouts: Workout[]): void {
