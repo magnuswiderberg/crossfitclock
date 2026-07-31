@@ -5,10 +5,8 @@ import { initAudio } from '../engine/audio'
 interface Props {
   workouts: Workout[]
   onStart: (w: Workout) => void
-  onEdit: (w: Workout) => void
+  onInspect: (w: Workout) => void
   onNew: () => void
-  onDuplicate: (w: Workout) => void
-  onDelete: (w: Workout) => void
 }
 
 function describe(w: Workout): string {
@@ -18,7 +16,44 @@ function describe(w: Workout): string {
   return `${formatTime(totalDuration(w))} · ${blockPart} · ${sets} ${sets === 1 ? 'set' : 'sets'}`
 }
 
-export function HomeScreen({ workouts, onStart, onEdit, onNew, onDuplicate, onDelete }: Props) {
+interface CardProps {
+  workout: Workout
+  onStart: (w: Workout) => void
+  onInspect: (w: Workout) => void
+}
+
+function WorkoutCard({ workout: w, onStart, onInspect }: CardProps) {
+  return (
+    <div className="workout-card">
+      <button className="workout-info" onClick={() => onInspect(w)}>
+        <span className="workout-stack">
+          <span className="workout-name">{w.name}</span>
+          <span className="workout-meta">{describe(w)}</span>
+        </span>
+        <span className="workout-chevron" aria-hidden="true">
+          ›
+        </span>
+      </button>
+      <div className="workout-actions">
+        <button
+          className="btn btn-primary"
+          onClick={() => {
+            // AudioContext must be created inside a user gesture.
+            void initAudio()
+            onStart(w)
+          }}
+        >
+          Start
+        </button>
+      </div>
+    </div>
+  )
+}
+
+export function HomeScreen({ workouts, onStart, onInspect, onNew }: Props) {
+  const own = workouts.filter((w) => !w.preset)
+  const presets = workouts.filter((w) => w.preset)
+
   return (
     <div className="screen">
       <div className="screen-head">
@@ -28,48 +63,23 @@ export function HomeScreen({ workouts, onStart, onEdit, onNew, onDuplicate, onDe
         </button>
       </div>
 
-      {workouts.map((w) => (
-        <div key={w.id} className="workout-card">
-          <h2>{w.name}</h2>
-          <div className="workout-meta">
-            {describe(w)}
-            {w.preset && <span className="preset-tag">Preset</span>}
-          </div>
-          <div className="workout-actions">
-            <button
-              className="btn btn-primary"
-              onClick={() => {
-                // AudioContext must be created inside a user gesture.
-                void initAudio()
-                onStart(w)
-              }}
-            >
-              Start
-            </button>
-            {!w.preset && (
-              <button className="btn" onClick={() => onEdit(w)}>
-                Edit
-              </button>
-            )}
-            <button className="btn btn-ghost" onClick={() => onDuplicate(w)}>
-              Copy
-            </button>
-            {!w.preset && (
-              <>
-                <span className="spacer" />
-                <button
-                  className="btn btn-danger"
-                  onClick={() => {
-                    if (window.confirm(`Delete "${w.name}"?`)) onDelete(w)
-                  }}
-                >
-                  Delete
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      ))}
+      {own.length > 0 && (
+        <>
+          <h2 className="section-title">My workouts</h2>
+          {own.map((w) => (
+            <WorkoutCard key={w.id} workout={w} onStart={onStart} onInspect={onInspect} />
+          ))}
+        </>
+      )}
+
+      {presets.length > 0 && (
+        <>
+          <h2 className="section-title">Presets</h2>
+          {presets.map((w) => (
+            <WorkoutCard key={w.id} workout={w} onStart={onStart} onInspect={onInspect} />
+          ))}
+        </>
+      )}
     </div>
   )
 }

@@ -13,9 +13,11 @@ import type { SessionRestore } from '../engine/useSession'
 import { HomeScreen } from './HomeScreen'
 import { EditScreen } from './EditScreen'
 import { RunScreen } from './RunScreen'
+import { DetailScreen } from './DetailScreen'
 
 type View =
   | { name: 'home' }
+  | { name: 'detail'; workout: Workout }
   | { name: 'edit'; workout: Workout; isNew: boolean }
   | { name: 'run'; workout: Workout; restore?: SessionRestore }
 
@@ -70,14 +72,29 @@ export function App() {
     )
   }
 
+  if (view.name === 'detail') {
+    const w = view.workout
+    return (
+      <DetailScreen
+        workout={w}
+        onStart={() => setView({ name: 'run', workout: w })}
+        onEdit={() => setView({ name: 'edit', workout: w, isNew: false })}
+        onCopy={() => setView({ name: 'edit', workout: duplicateWorkout(w), isNew: true })}
+        onDelete={() => {
+          setWorkouts((list) => list.filter((x) => x.id !== w.id))
+          setView({ name: 'home' })
+        }}
+        onBack={() => setView({ name: 'home' })}
+      />
+    )
+  }
+
   return (
     <HomeScreen
       workouts={workouts}
       onStart={(w) => setView({ name: 'run', workout: w })}
-      onEdit={(w) => setView({ name: 'edit', workout: w, isNew: false })}
+      onInspect={(w) => setView({ name: 'detail', workout: w })}
       onNew={() => setView({ name: 'edit', workout: emptyWorkout(), isNew: true })}
-      onDuplicate={(w) => setView({ name: 'edit', workout: duplicateWorkout(w), isNew: true })}
-      onDelete={(w) => setWorkouts((list) => list.filter((x) => x.id !== w.id))}
     />
   )
 }

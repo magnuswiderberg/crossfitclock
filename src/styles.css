@@ -132,6 +132,20 @@ input[type='number'] {
 }
 
 /* ---------- home ---------- */
+.section-title {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-top: 8px;
+  margin-bottom: -6px;
+}
+
+.section-title:first-of-type {
+  margin-top: 0;
+}
+
 .workout-card {
   background: var(--card);
   border-radius: 12px;
@@ -141,12 +155,37 @@ input[type='number'] {
   gap: 10px;
 }
 
-.workout-card h2 {
+/* Tappable name + meta area — opens the read-only detail view. */
+.workout-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+}
+
+.workout-stack {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.workout-name {
   font-family: var(--display);
   font-size: 22px;
   letter-spacing: 0.03em;
   font-weight: 400;
   text-transform: uppercase;
+}
+
+.workout-chevron {
+  color: var(--muted);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.workout-info:hover .workout-chevron {
+  color: var(--text);
 }
 
 .workout-meta {
@@ -156,6 +195,8 @@ input[type='number'] {
 }
 
 .preset-tag {
+  font-family: var(--body);
+  font-weight: 400;
   margin-left: 8px;
   padding: 1px 6px;
   border: 1px solid var(--line);
@@ -171,8 +212,35 @@ input[type='number'] {
   align-items: center;
 }
 
-.workout-actions .spacer {
-  flex: 1;
+/* ---------- detail screen ---------- */
+.detail-block-label {
+  font-family: var(--display);
+  font-size: 16px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.detail-set-head {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.detail-row .detail-times {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.detail-rest {
+  color: var(--muted);
 }
 
 /* ---------- run screen ---------- */
