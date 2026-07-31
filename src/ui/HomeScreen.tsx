@@ -1,6 +1,7 @@
 import type { Workout } from '../model/types'
 import { formatTime, totalDuration } from '../model/compile'
 import { initAudio } from '../engine/audio'
+import { primeSpeech } from '../engine/speech'
 
 interface Props {
   workouts: Workout[]
@@ -40,6 +41,7 @@ function WorkoutCard({ workout: w, onStart, onInspect }: CardProps) {
           onClick={() => {
             // AudioContext must be created inside a user gesture.
             void initAudio()
+            primeSpeech()
             onStart(w)
           }}
         >

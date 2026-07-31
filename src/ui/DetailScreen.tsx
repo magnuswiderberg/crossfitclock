@@ -1,6 +1,8 @@
 import type { Workout } from '../model/types'
 import { formatTime, totalDuration } from '../model/compile'
 import { initAudio } from '../engine/audio'
+import { primeSpeech } from '../engine/speech'
+import { VoiceToggle } from './VoiceToggle'
 
 interface Props {
   workout: Workout
@@ -25,6 +27,7 @@ export function DetailScreen({ workout, onStart, onEdit, onCopy, onDelete, onBac
           onClick={() => {
             // AudioContext must be created inside a user gesture.
             void initAudio()
+            primeSpeech()
             onStart()
           }}
         >
@@ -38,6 +41,8 @@ export function DetailScreen({ workout, onStart, onEdit, onCopy, onDelete, onBac
       </h1>
 
       {workout.description?.trim() && <p className="detail-desc">{workout.description}</p>}
+
+      <VoiceToggle />
 
       {workout.blocks.map((block) => (
         <div key={block.id} className="block-card">

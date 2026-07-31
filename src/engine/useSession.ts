@@ -10,6 +10,7 @@ import {
   cancelScheduledBeeps,
   initAudio,
 } from './audio'
+import { cancelSpeech, primeSpeech, speak } from './speech'
 
 export type SessionStatus = 'running' | 'paused' | 'done'
 
@@ -123,6 +124,9 @@ export function useSession(
     raf: 0,
   })
 
+  /** Index of the segment that has already been announced. */
+  const spokenRef = useRef(-1)
+
   /**
    * Queue every remaining beep in the session on the audio clock, starting
    * from `remaining` seconds left in segment `index`. Countdown beeps whose
@@ -180,6 +184,18 @@ export function useSession(
 
     const seg = segments[loc.index]
     const workIsNext = segments[loc.index + 1]?.type === 'work'
+
+    // Announcements can't be pre-scheduled like beeps (Web Speech has no
+    // clock), so they fire from here — silent while the tab is throttled in
+    // the background, where the beeps still cover the boundaries. Each
+    // segment announces itself as it starts: "Rest", or the interval label
+    // (unlabeled work gets nothing — the go-beep already marks it).
+    if (loc.index !== spokenRef.current) {
+      spokenRef.current = loc.index
+      if (seg.type === 'rest' || seg.type === 'setRest') speak('Rest')
+      else if (seg.type === 'work' && seg.label !== 'Work') speak(seg.label)
+    }
+
     setSnap({
       status: 'running',
       index: loc.index,
@@ -198,6 +214,9 @@ export function useSession(
     r.pausedAtMs = restore?.pausedAt ?? 0
     const startPaused = restore?.pausedAt != null
     r.status = startPaused ? 'paused' : 'running'
+    // A restore lands mid-segment; announcing it belatedly would be noise.
+    const loc0 = locate(((startPaused ? r.pausedAtMs : Date.now()) - r.startMs) / 1000)
+    spokenRef.current = loc0?.index ?? -1
     persistRef.current?.({ startedAt: r.startMs, pausedAt: startPaused ? r.pausedAtMs : null })
     if (!startPaused) {
       rescheduleBeeps()
@@ -215,6 +234,7 @@ export function useSession(
     // After a reload there has been no user gesture yet, so the AudioContext
     // can't start. Unlock it on the first tap and schedule the beeps then.
     const unlock = () => {
+      primeSpeech()
       if (audioRunning()) return
       void initAudio().then(rescheduleBeeps)
     }
@@ -224,10 +244,11 @@ export function useSession(
     return () => {
       cancelAnimationFrame(r.raf)
       cancelScheduledBeeps()
+      cancelSpeech()
       document.removeEventListener('visibilitychange', onVisibility)
       window.removeEventListener('pointerdown', unlock)
     }
-  }, [segments, tick, rescheduleBeeps, restore])
+  }, [segments, tick, rescheduleBeeps, locate, restore])
 
   const controls = useMemo<SessionControls>(
     () => ({
@@ -238,6 +259,7 @@ export function useSession(
         r.pausedAtMs = Date.now()
         cancelAnimationFrame(r.raf)
         cancelScheduledBeeps()
+        cancelSpeech()
         persistRef.current?.({ startedAt: r.startMs, pausedAt: r.pausedAtMs })
         setSnap((s) => ({ ...s, status: 'paused' }))
       },
@@ -253,6 +275,8 @@ export function useSession(
       restart: () => {
         const r = ref.current
         cancelAnimationFrame(r.raf)
+        cancelSpeech()
+        spokenRef.current = -1
         r.status = 'running'
         r.startMs = Date.now()
         persistRef.current?.({ startedAt: r.startMs, pausedAt: null })

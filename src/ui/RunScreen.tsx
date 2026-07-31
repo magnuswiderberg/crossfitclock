@@ -4,6 +4,7 @@ import { compile, formatTime, type Segment } from '../model/compile'
 import { saveActiveSession, clearActiveSession } from '../model/storage'
 import { useSession, type SessionRestore } from '../engine/useSession'
 import { useWakeLock } from '../engine/wakeLock'
+import { VoiceToggle } from './VoiceToggle'
 
 interface Props {
   workout: Workout
@@ -168,6 +169,7 @@ export function RunScreen({ workout, restore, onExit }: Props) {
           <button className="btn btn-ghost" onClick={exit}>
             End workout
           </button>
+          <VoiceToggle />
         </div>
       )}
     </div>

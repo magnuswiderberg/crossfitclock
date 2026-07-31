@@ -257,6 +257,38 @@ input[type='number'] {
   color: var(--muted);
 }
 
+.voice-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--card);
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+}
+
+.voice-toggle input {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--rest);
+}
+
+.voice-toggle:hover {
+  background: var(--card-hi);
+}
+
+.overlay .voice-toggle {
+  width: 220px;
+  box-sizing: border-box;
+  background: var(--card-hi);
+}
+
 /* ---------- run screen ---------- */
 .run {
   position: fixed;
