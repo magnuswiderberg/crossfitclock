@@ -29,6 +29,69 @@ export function buildPresets(): Workout[] {
     },
     {
       id: uid(),
+      name: 'EMOM 10',
+      version: 1,
+      preset: true,
+      blocks: [
+        {
+          id: uid(),
+          label: 'Main',
+          sets: [
+            {
+              id: uid(),
+              label: 'Every minute',
+              rounds: 10,
+              intervals: [interval(60, 0)],
+              restAfterSet: 0,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: uid(),
+      name: '30 / 30',
+      version: 1,
+      preset: true,
+      blocks: [
+        {
+          id: uid(),
+          label: 'Main',
+          sets: [
+            {
+              id: uid(),
+              label: '30 on / 30 off',
+              rounds: 10,
+              intervals: [interval(30, 30)],
+              restAfterSet: 0,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: uid(),
+      name: '40 / 20',
+      version: 1,
+      preset: true,
+      blocks: [
+        {
+          id: uid(),
+          label: 'Main',
+          sets: [
+            {
+              id: uid(),
+              label: '40 on / 20 off',
+              rounds: 8,
+              intervals: [interval(40, 20)],
+              restAfterSet: 0,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: uid(),
       name: 'Fight Gone Bad',
       version: 1,
       preset: true,
@@ -49,6 +112,27 @@ export function buildPresets(): Workout[] {
                 interval(60, 0, 'Row (calories)'),
               ],
               restAfterSet: 60,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: uid(),
+      name: 'The Chief',
+      version: 1,
+      preset: true,
+      blocks: [
+        {
+          id: uid(),
+          label: 'Main',
+          sets: [
+            {
+              id: uid(),
+              label: '3 min on / 1 min off',
+              rounds: 5,
+              intervals: [interval(180, 60, 'AMRAP')],
+              restAfterSet: 0,
             },
           ],
         },
