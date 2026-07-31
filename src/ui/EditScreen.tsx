@@ -85,6 +85,16 @@ export function EditScreen({ workout, onSave, onCancel }: Props) {
         />
       </div>
 
+      <div className="edit-field">
+        <label>Description (optional)</label>
+        <textarea
+          rows={2}
+          value={draft.description ?? ''}
+          onChange={(e) => update((w) => (w.description = e.target.value || undefined))}
+          placeholder="Intention, background, or the rep scheme inside each interval"
+        />
+      </div>
+
       {problems.length > 0 && <div className="invalid-hint">{problems[0]}</div>}
 
       {draft.blocks.map((block, bi) => (

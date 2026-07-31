@@ -9,6 +9,8 @@ export function buildPresets(): Workout[] {
     {
       id: uid(),
       name: 'Classic Tabata',
+      description:
+        'The original 1996 Tabata protocol: 8 all-out rounds of 20 s work, 10 s rest. Pick one movement and hold maximum intensity.',
       version: 1,
       preset: true,
       blocks: [
@@ -30,6 +32,8 @@ export function buildPresets(): Workout[] {
     {
       id: uid(),
       name: 'EMOM 10',
+      description:
+        'Every Minute On the Minute: start a fixed set of reps at the top of each minute and rest for whatever remains. Example: 12 kettlebell swings.',
       version: 1,
       preset: true,
       blocks: [
@@ -51,6 +55,8 @@ export function buildPresets(): Workout[] {
     {
       id: uid(),
       name: '30 / 30',
+      description:
+        'Balanced work/rest intervals — a forgiving format for beginners or steady conditioning on the rower, bike, or with bodyweight movements.',
       version: 1,
       preset: true,
       blocks: [
@@ -72,6 +78,8 @@ export function buildPresets(): Workout[] {
     {
       id: uid(),
       name: '40 / 20',
+      description:
+        'The classic HIIT circuit ratio: 40 s on, 20 s to transition. Rotate through movements each round or hammer a single one.',
       version: 1,
       preset: true,
       blocks: [
@@ -93,6 +101,8 @@ export function buildPresets(): Workout[] {
     {
       id: uid(),
       name: 'Fight Gone Bad',
+      description:
+        'CrossFit benchmark: 1 minute of max reps at each station, no rest between stations, 1 minute between rounds. Score is total reps.',
       version: 1,
       preset: true,
       blocks: [
@@ -120,6 +130,8 @@ export function buildPresets(): Workout[] {
     {
       id: uid(),
       name: 'The Chief',
+      description:
+        'CrossFit benchmark: each 3-minute AMRAP is 3 power cleans (60/43 kg), 6 push-ups and 9 air squats on repeat. Score is total rounds across all five cycles.',
       version: 1,
       preset: true,
       blocks: [
@@ -141,6 +153,8 @@ export function buildPresets(): Workout[] {
     {
       id: uid(),
       name: 'Full Session',
+      description:
+        'A template showing a full session shape — warm-up, main circuit and stretching as separate blocks. Copy it and make it yours.',
       version: 1,
       preset: true,
       blocks: [

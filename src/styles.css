@@ -42,7 +42,8 @@ button {
   background: none;
 }
 
-input {
+input,
+textarea {
   font-family: var(--body);
   color: var(--text);
   background: var(--base);
@@ -53,7 +54,13 @@ input {
   width: 100%;
 }
 
+textarea {
+  resize: vertical;
+  line-height: 1.4;
+}
+
 input:focus-visible,
+textarea:focus-visible,
 button:focus-visible {
   outline: 2px solid var(--prep);
   outline-offset: 2px;
@@ -192,6 +199,13 @@ input[type='number'] {
   color: var(--muted);
   font-size: 14px;
   font-variant-numeric: tabular-nums;
+}
+
+.detail-desc {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 46ch;
 }
 
 .preset-tag {

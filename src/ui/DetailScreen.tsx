@@ -37,6 +37,8 @@ export function DetailScreen({ workout, onStart, onEdit, onCopy, onDelete, onBac
         {workout.preset && <span className="preset-tag">Preset</span>}
       </h1>
 
+      {workout.description?.trim() && <p className="detail-desc">{workout.description}</p>}
+
       {workout.blocks.map((block) => (
         <div key={block.id} className="block-card">
           <div className="detail-block-label">{block.label}</div>

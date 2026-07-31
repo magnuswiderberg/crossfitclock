@@ -31,6 +31,12 @@ export interface Block {
 export interface Workout {
   id: string
   name: string
+  /**
+   * Optional intention/background shown on the detail screen — also the place
+   * for prescribed movements the interval structure can't express (e.g. the
+   * rep scheme inside an AMRAP interval).
+   */
+  description?: string
   version: 1
   blocks: Block[]
   /** Built-in workouts are read-only: no edit, no delete. Copy to customize. */
