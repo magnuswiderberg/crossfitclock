@@ -60,19 +60,15 @@ export function HomeScreen({ workouts, onStart, onInspect, onNew }: Props) {
     <div className="screen">
       <div className="screen-head">
         <h1 className="app-title">CrossFit Clock</h1>
-        <button className="btn" onClick={onNew}>
-          New
-        </button>
       </div>
 
-      {own.length > 0 && (
-        <>
-          <h2 className="section-title">My workouts</h2>
-          {own.map((w) => (
-            <WorkoutCard key={w.id} workout={w} onStart={onStart} onInspect={onInspect} />
-          ))}
-        </>
-      )}
+      <h2 className="section-title">My workouts</h2>
+      {own.map((w) => (
+        <WorkoutCard key={w.id} workout={w} onStart={onStart} onInspect={onInspect} />
+      ))}
+      <button className="workout-new" onClick={onNew}>
+        ＋ New workout
+      </button>
 
       {presets.length > 0 && (
         <>

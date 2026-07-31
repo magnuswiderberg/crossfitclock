@@ -162,6 +162,23 @@ input[type='number'] {
   gap: 10px;
 }
 
+/* Dashed "add" row at the end of My workouts — doubles as the empty state. */
+.workout-new {
+  border: 2px dashed var(--card-hi);
+  border-radius: 12px;
+  padding: 14px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.workout-new:hover {
+  color: var(--text);
+  border-color: var(--muted);
+}
+
 /* Tappable name + meta area — opens the read-only detail view. */
 .workout-info {
   display: flex;
