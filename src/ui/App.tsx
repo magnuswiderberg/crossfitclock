@@ -9,17 +9,20 @@ import {
   loadActiveSession,
   clearActiveSession,
 } from '../model/storage'
+import { isConnected, recordDeletion, syncNow } from '../model/sync'
 import type { SessionRestore } from '../engine/useSession'
 import { HomeScreen } from './HomeScreen'
 import { EditScreen } from './EditScreen'
 import { RunScreen } from './RunScreen'
 import { DetailScreen } from './DetailScreen'
+import { SyncScreen } from './SyncScreen'
 
 type View =
   | { name: 'home' }
   | { name: 'detail'; workout: Workout }
   | { name: 'edit'; workout: Workout; isNew: boolean }
   | { name: 'run'; workout: Workout; restore?: SessionRestore }
+  | { name: 'sync' }
 
 /** Reopen a session that was still in progress when the page last unloaded. */
 function initialView(): View {
@@ -47,6 +50,25 @@ export function App() {
     saveWorkouts(workouts)
   }, [workouts])
 
+  // Background sync: shortly after load and after every change. Applying the
+  // merged result only when it differs keeps this from looping — the follow-up
+  // sync finds nothing new and stops. Failures are silent; offline is normal.
+  useEffect(() => {
+    if (!isConnected()) return
+    const t = window.setTimeout(async () => {
+      try {
+        const merged = await syncNow(workouts)
+        if (!merged) return
+        setWorkouts((current) =>
+          JSON.stringify(merged) === JSON.stringify(current) ? current : merged,
+        )
+      } catch {
+        // Offline or server trouble — next change or app load retries.
+      }
+    }, 1500)
+    return () => window.clearTimeout(t)
+  }, [workouts])
+
   if (view.name === 'run') {
     return (
       <RunScreen
@@ -62,8 +84,9 @@ export function App() {
       <EditScreen
         workout={view.workout}
         onSave={(w) => {
+          const stamped = { ...w, updatedAt: Date.now() }
           setWorkouts((list) =>
-            view.isNew ? [...list, w] : list.map((x) => (x.id === w.id ? w : x)),
+            view.isNew ? [...list, stamped] : list.map((x) => (x.id === w.id ? stamped : x)),
           )
           setView({ name: 'home' })
         }}
@@ -81,9 +104,20 @@ export function App() {
         onEdit={() => setView({ name: 'edit', workout: w, isNew: false })}
         onCopy={() => setView({ name: 'edit', workout: duplicateWorkout(w), isNew: true })}
         onDelete={() => {
+          recordDeletion(w.id)
           setWorkouts((list) => list.filter((x) => x.id !== w.id))
           setView({ name: 'home' })
         }}
+        onBack={() => setView({ name: 'home' })}
+      />
+    )
+  }
+
+  if (view.name === 'sync') {
+    return (
+      <SyncScreen
+        workouts={workouts}
+        onWorkoutsChange={setWorkouts}
         onBack={() => setView({ name: 'home' })}
       />
     )
@@ -95,6 +129,7 @@ export function App() {
       onStart={(w) => setView({ name: 'run', workout: w })}
       onInspect={(w) => setView({ name: 'detail', workout: w })}
       onNew={() => setView({ name: 'edit', workout: emptyWorkout(), isNew: true })}
+      onSync={() => setView({ name: 'sync' })}
     />
   )
 }

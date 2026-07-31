@@ -1,0 +1,5 @@
+.git*
+local.settings.json
+tsconfig.json
+src
+*.ts

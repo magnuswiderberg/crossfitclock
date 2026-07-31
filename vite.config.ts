@@ -3,6 +3,13 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  // In dev the Functions host serves /api (npm run api). In production Azure
+  // Static Web Apps routes /api to the managed functions on the same origin.
+  server: {
+    proxy: {
+      '/api': 'http://localhost:7071',
+    },
+  },
   plugins: [
     react(),
     VitePWA({

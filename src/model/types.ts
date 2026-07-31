@@ -41,6 +41,8 @@ export interface Workout {
   blocks: Block[]
   /** Built-in workouts are read-only: no edit, no delete. Copy to customize. */
   preset?: boolean
+  /** Epoch ms of the last save; drives last-write-wins sync. Never on presets. */
+  updatedAt?: number
 }
 
 /** Countdown before the very first interval of a session. */

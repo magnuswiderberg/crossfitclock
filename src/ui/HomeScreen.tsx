@@ -8,6 +8,7 @@ interface Props {
   onStart: (w: Workout) => void
   onInspect: (w: Workout) => void
   onNew: () => void
+  onSync: () => void
 }
 
 function describe(w: Workout): string {
@@ -52,7 +53,7 @@ function WorkoutCard({ workout: w, onStart, onInspect }: CardProps) {
   )
 }
 
-export function HomeScreen({ workouts, onStart, onInspect, onNew }: Props) {
+export function HomeScreen({ workouts, onStart, onInspect, onNew, onSync }: Props) {
   const own = workouts.filter((w) => !w.preset)
   const presets = workouts.filter((w) => w.preset)
 
@@ -60,6 +61,9 @@ export function HomeScreen({ workouts, onStart, onInspect, onNew }: Props) {
     <div className="screen">
       <div className="screen-head">
         <h1 className="app-title">CrossFit Clock</h1>
+        <button className="btn btn-ghost" onClick={onSync}>
+          Sync
+        </button>
       </div>
 
       <h2 className="section-title">My workouts</h2>

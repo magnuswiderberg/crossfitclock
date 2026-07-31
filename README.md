@@ -8,8 +8,9 @@ An interval timer PWA for Tabata and CrossFit sessions. The screen is the timer:
 - Rest between rounds and rest after each set.
 - Fixed countdowns: 5 s "Get ready" before the session, beeps 2 s before every work interval, a low beep at each rest, an ascending triple at the finish.
 - Workout mode: full-screen color-coded timer, plate-segment round progress, next-up peek, tap to pause, screen kept awake.
-- Edit mode: create, edit, duplicate, and delete workouts; three presets are seeded on first launch.
+- Edit mode: create, edit, duplicate, and delete workouts; presets are seeded on first launch.
 - Fully offline PWA — workouts live in localStorage, fonts and assets are self-hosted.
+- Optional sync across devices (edit on desktop, run on phone): claim a handle, get a sync code, connect other devices with it — no email or password. Backed by Azure Static Web Apps functions + Cosmos DB; the app works fully offline without it. See [docs/database-sync-plan.md](docs/database-sync-plan.md).
 
 ## Local development
 
@@ -25,6 +26,43 @@ Other scripts:
 ```sh
 npm run build      # type-check and produce a production build in dist/
 npm run preview    # serve the production build locally
+npm run api        # build and start the sync API locally (see below)
+npm run dev:all    # dev server + sync API together, one terminal
+```
+
+### Sync API locally (optional)
+
+The app runs fine without the API — only the Sync screen needs it. To develop
+against it you need [Azure Functions Core Tools](https://learn.microsoft.com/azure/azure-functions/functions-run-local)
+and the Cosmos DB emulator (vnext) in Docker:
+
+```sh
+docker run -d -p 8081:8081 -p 1234:1234 mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:vnext-preview
+cd api && npm install && cd ..
+npm run dev:all    # Functions host on :7071 + Vite dev server (proxies /api → 7071)
+```
+
+(Or separately: `npm run api` and `npm run dev` in two terminals.)
+
+`api/local.settings.json` is checked in — it only contains the emulator's
+public well-known key. The database/container are created automatically on
+first use (`COSMOS_INIT=true`). The Functions host also expects
+[Azurite](https://learn.microsoft.com/azure/storage/common/storage-use-azurite)
+for its internal storage (`UseDevelopmentStorage=true` — without it the host
+logs "Process reporting unhealthy"):
+
+```sh
+docker run -d -p 10000-10002:10000-10002 mcr.microsoft.com/azure-storage/azurite
+```
+
+## Deploy
+
+Infrastructure is Bicep in [infra/](infra/): an Azure Static Web App (Free)
+with managed functions, plus a `crossfitclock` database in an existing
+serverless Cosmos account. One script deploys infra and content:
+
+```powershell
+.\infra\deploy.ps1
 ```
 
 Notes for development:
@@ -38,10 +76,12 @@ Notes for development:
 
 ```
 src/
-  model/      # Workout types, presets, localStorage, and the timeline compiler
+  model/      # Workout types, presets, localStorage, sync client, timeline compiler
   engine/     # Session runner (performance.now-based), Web Audio beeps, wake lock
-  ui/         # App shell, Home, Edit, and Run screens
+  ui/         # App shell, Home, Edit, Run, and Sync screens
   styles.css  # Design tokens and all styling
+api/          # Azure Functions sync API (account claim/login, workout sync)
+infra/        # Bicep templates and deploy script
 ```
 
 The key idea: the nested Workout model exists for editing and storage. When a session starts, [`compile()`](src/model/compile.ts) flattens it into a list of timed segments (prep / work / rest / round rest / set rest), and the runner just walks that list — trailing rests are trimmed so every session ends on effort.

@@ -615,3 +615,52 @@ input[type='number'] {
   text-transform: uppercase;
   font-variant-numeric: tabular-nums;
 }
+
+/* ---------- sync screen ---------- */
+.sync-note {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.sync-error {
+  color: var(--work);
+  font-size: 14px;
+}
+
+.sync-account {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sync-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sync-label {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.sync-value {
+  font-size: 15px;
+}
+
+.sync-code {
+  font-family: var(--display);
+  font-size: 22px;
+  letter-spacing: 0.08em;
+}
+
+.sync-code-input {
+  text-transform: uppercase;
+}

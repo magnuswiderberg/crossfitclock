@@ -43,7 +43,17 @@ https://claude.ai/code/artifact/f9493707-f78e-4004-8377-cba3b34e32bb
   it's empty. Presets carry `preset: true` and are read-only in the UI (no
   edit/delete — Copy is the customize path); `loadWorkouts` re-flags legacy
   stored presets by name, and Copy opens the duplicate straight in the editor
-  as a new workout (only saved on Save). A remote backend (e.g. Supabase) is a possible later addition.
+  as a new workout (only saved on Save).
+- Sync backend (chosen over Supabase — no 7-day free-tier pause, account
+  already existed): Azure Static Web Apps managed functions (`api/`) + a
+  serverless Cosmos DB. Identity is a claimed **handle + server-generated
+  sync code** (no email); the code's SHA-256 lives in Cosmos, the code itself
+  in localStorage (`crossfitclock.sync.v1`, with deletion tombstones).
+  Sync is offline-first, last-write-wins per workout via `updatedAt`, one
+  `POST /api/sync` round trip; presets never sync. Infra is Bicep in
+  `infra/` (`deploy.ps1`); local dev uses the Docker Cosmos emulator (vnext,
+  plain HTTP on :8081) with `npm run api` + a Vite `/api` proxy. Full plan:
+  `docs/database-sync-plan.md`.
 - The in-flight session persists to `crossfitclock.session.v1` (workout
   snapshot + wall-clock anchor) and is restored on load, so a reload or PWA
   restart drops back into the running clock. Cleared on finish/exit.
