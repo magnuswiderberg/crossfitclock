@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import type { Workout } from '../model/types'
 import { compile, formatTime, type Segment } from '../model/compile'
 import { saveActiveSession, clearActiveSession } from '../model/storage'
@@ -11,6 +11,8 @@ interface Props {
   /** Present when reopening a session that survived a page reload. */
   restore?: SessionRestore
   onExit: () => void
+  /** System-back hook (see App): return true to swallow the back press. */
+  backRef: { current: (() => boolean) | null }
 }
 
 const PHASE_WORD: Record<Segment['type'], string> = {
@@ -35,7 +37,7 @@ function nextUpText(seg: Segment, next: Segment | undefined): string {
   return `${prefix}${next.label} ${formatTime(next.duration)}`
 }
 
-export function RunScreen({ workout, restore, onExit }: Props) {
+export function RunScreen({ workout, restore, onExit, backRef }: Props) {
   const segments = useMemo(() => compile(workout), [workout])
   const [snap, controls, audioBlocked] = useSession(segments, {
     restore,
@@ -45,6 +47,19 @@ export function RunScreen({ workout, restore, onExit }: Props) {
     },
   })
   useWakeLock(snap.status !== 'done')
+
+  // First system-back pauses the clock; once paused (or done) the press
+  // falls through to App, which ends the session.
+  useEffect(() => {
+    backRef.current = () => {
+      if (snap.status !== 'running') return false
+      controls.pause()
+      return true
+    }
+    return () => {
+      backRef.current = null
+    }
+  })
 
   const exit = () => {
     clearActiveSession()

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Workout } from '../model/types'
 import { compile } from '../model/compile'
 import {
@@ -50,9 +50,62 @@ export function App() {
   // begins when the hint is dismissed.
   const [pendingStart, setPendingStart] = useState<Workout | null>(null)
 
+  // One history entry marks "somewhere below home", so the system back
+  // button/gesture (browser tabs, Android PWAs) returns to the home screen
+  // instead of leaving the app. history.state survives a reload while the
+  // entry is on the stack, hence the initializer.
+  const subEntryRef = useRef<boolean>(Boolean(history.state?.sub))
+  const viewRef = useRef(view)
+  viewRef.current = view
+  // The run screen registers a hook here; returning true means it swallowed
+  // the back press (paused the clock) instead of leaving the screen.
+  const runBackRef = useRef<(() => boolean) | null>(null)
+
+  const navigate = (v: View) => {
+    if (v.name !== 'home' && !subEntryRef.current) {
+      history.pushState({ sub: true }, '')
+      subEntryRef.current = true
+    }
+    setView(v)
+  }
+
+  /** Return home, popping the entry `navigate` pushed (if any). */
+  const goHome = () => {
+    if (subEntryRef.current) history.back() // popstate handler shows home
+    else setView({ name: 'home' })
+  }
+
+  useEffect(() => {
+    // A session restored in a fresh tab/PWA launch starts on the run screen
+    // with nothing pushed yet.
+    if (viewRef.current.name !== 'home' && !subEntryRef.current) {
+      history.pushState({ sub: true }, '')
+      subEntryRef.current = true
+    }
+    const onPop = (e: PopStateEvent) => {
+      subEntryRef.current = Boolean(e.state?.sub)
+      if (viewRef.current.name === 'run') {
+        // Back during a run pauses first; restore the entry so the next
+        // back press is caught too. A second back (already paused, or on
+        // the done screen) ends the session, same as the Exit button.
+        if (runBackRef.current?.()) {
+          if (!subEntryRef.current) {
+            history.pushState({ sub: true }, '')
+            subEntryRef.current = true
+          }
+          return
+        }
+        clearActiveSession()
+      }
+      setView({ name: 'home' })
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
+
   const startSession = (w: Workout) => {
     if (silentHintPending()) setPendingStart(w)
-    else setView({ name: 'run', workout: w })
+    else navigate({ name: 'run', workout: w })
   }
 
   const hintGate = pendingStart && (
@@ -60,7 +113,7 @@ export function App() {
       onClose={() => {
         dismissSilentHint()
         setPendingStart(null)
-        setView({ name: 'run', workout: pendingStart })
+        navigate({ name: 'run', workout: pendingStart })
       }}
     />
   )
@@ -93,7 +146,8 @@ export function App() {
       <RunScreen
         workout={view.workout}
         restore={view.restore}
-        onExit={() => setView({ name: 'home' })}
+        onExit={goHome}
+        backRef={runBackRef}
       />
     )
   }
@@ -107,9 +161,9 @@ export function App() {
           setWorkouts((list) =>
             view.isNew ? [...list, stamped] : list.map((x) => (x.id === w.id ? stamped : x)),
           )
-          setView({ name: 'home' })
+          goHome()
         }}
-        onCancel={() => setView({ name: 'home' })}
+        onCancel={goHome}
       />
     )
   }
@@ -121,14 +175,14 @@ export function App() {
         <DetailScreen
           workout={w}
           onStart={() => startSession(w)}
-          onEdit={() => setView({ name: 'edit', workout: w, isNew: false })}
-          onCopy={() => setView({ name: 'edit', workout: duplicateWorkout(w), isNew: true })}
+          onEdit={() => navigate({ name: 'edit', workout: w, isNew: false })}
+          onCopy={() => navigate({ name: 'edit', workout: duplicateWorkout(w), isNew: true })}
           onDelete={() => {
             recordDeletion(w.id)
             setWorkouts((list) => list.filter((x) => x.id !== w.id))
-            setView({ name: 'home' })
+            goHome()
           }}
-          onBack={() => setView({ name: 'home' })}
+          onBack={goHome}
         />
         {hintGate}
       </>
@@ -137,11 +191,7 @@ export function App() {
 
   if (view.name === 'sync') {
     return (
-      <SyncScreen
-        workouts={workouts}
-        onWorkoutsChange={setWorkouts}
-        onBack={() => setView({ name: 'home' })}
-      />
+      <SyncScreen workouts={workouts} onWorkoutsChange={setWorkouts} onBack={goHome} />
     )
   }
 
@@ -150,9 +200,9 @@ export function App() {
       <HomeScreen
         workouts={workouts}
         onStart={startSession}
-        onInspect={(w) => setView({ name: 'detail', workout: w })}
-        onNew={() => setView({ name: 'edit', workout: emptyWorkout(), isNew: true })}
-        onSync={() => setView({ name: 'sync' })}
+        onInspect={(w) => navigate({ name: 'detail', workout: w })}
+        onNew={() => navigate({ name: 'edit', workout: emptyWorkout(), isNew: true })}
+        onSync={() => navigate({ name: 'sync' })}
       />
       {hintGate}
     </>

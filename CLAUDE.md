@@ -57,6 +57,10 @@ https://claude.ai/code/artifact/f9493707-f78e-4004-8377-cba3b34e32bb
 - The in-flight session persists to `crossfitclock.session.v1` (workout
   snapshot + wall-clock anchor) and is restored on load, so a reload or PWA
   restart drops back into the running clock. Cleared on finish/exit.
+- System back (browser tab, Android PWA gesture) is handled with a single
+  pushed history entry in `App.tsx` — back returns to home from any screen
+  instead of leaving the app. During a run, the first back pauses the clock
+  (the entry is re-pushed); a second back ends the session like Exit.
 
 ## Working notes
 
