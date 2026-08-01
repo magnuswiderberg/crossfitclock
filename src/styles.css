@@ -396,8 +396,7 @@ input[type='number'] {
 .run-top {
   position: relative;
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: center;
   padding: calc(18px + env(safe-area-inset-top)) 20px 0;
   font-size: 13px;
   font-weight: 700;
@@ -407,18 +406,20 @@ input[type='number'] {
 
 .run-top .where {
   opacity: 0.85;
-  text-align: right;
+  text-align: center;
 }
 
 .run-label {
   position: relative;
   text-align: center;
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-size: clamp(24px, 7vw, 48px);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  margin-top: 28px;
-  min-height: 22px;
+  margin-top: 24px;
+  padding: 0 20px;
+  min-height: 1.15em;
 }
 
 .run-time {

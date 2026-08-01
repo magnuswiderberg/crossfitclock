@@ -15,13 +15,6 @@ interface Props {
   backRef: { current: (() => boolean) | null }
 }
 
-const PHASE_WORD: Record<Segment['type'], string> = {
-  prep: 'Get ready',
-  work: 'Work',
-  rest: 'Rest',
-  setRest: 'Set rest',
-}
-
 const PHASE_CLASS: Record<Segment['type'], string> = {
   prep: 'run-prep',
   work: 'run-work',
@@ -94,7 +87,7 @@ export function RunScreen({ workout, restore, onExit, backRef }: Props) {
   const showRounds = seg.roundsTotal > 1
   const plateCount = showRounds ? seg.roundsTotal : seg.intervalsTotal
   const currentPlate = showRounds ? seg.round : seg.intervalIndex + 1
-  const showLabel = seg.type === 'work' && seg.label !== 'Work'
+  const singleBlock = workout.blocks.length === 1
 
   return (
     <div
@@ -131,14 +124,14 @@ export function RunScreen({ workout, restore, onExit, backRef }: Props) {
       )}
 
       <div className="run-top">
-        <span>{PHASE_WORD[seg.type]}</span>
         <span className="where">
-          {seg.blockLabel} · {seg.setLabel}
+          {!singleBlock && `${seg.blockLabel} · `}
+          {seg.setLabel}
           {showRounds && ` · Rd ${seg.round}/${seg.roundsTotal}`}
         </span>
       </div>
 
-      <div className="run-label">{showLabel ? seg.label : ''}</div>
+      <div className="run-label">{seg.label}</div>
 
       <div className="run-time">{formatTime(Math.ceil(snap.remaining))}</div>
 

@@ -92,8 +92,23 @@ export function compile(workout: Workout): Segment[] {
   return segments
 }
 
+/**
+ * Nominal workout length for display: no prep countdown, every interval rest
+ * counted, but the final set's trailing rest dropped. This intentionally
+ * differs from the compiled session (which adds prep and trims ALL trailing
+ * rests) — a Tabata should read as 4:00, not 3:55.
+ */
 export function totalDuration(workout: Workout): number {
-  return compile(workout).reduce((sum, s) => sum + s.duration, 0)
+  let total = 0
+  for (const block of workout.blocks) {
+    for (const set of block.sets) {
+      const round = set.intervals.reduce((sum, iv) => sum + iv.work + iv.rest, 0)
+      total += set.rounds * round + set.restAfterSet
+    }
+  }
+  const lastBlock = workout.blocks[workout.blocks.length - 1]
+  const lastSet = lastBlock?.sets[lastBlock.sets.length - 1]
+  return total - (lastSet?.restAfterSet ?? 0)
 }
 
 export function formatTime(totalSeconds: number): string {

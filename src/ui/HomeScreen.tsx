@@ -15,9 +15,10 @@ interface Props {
 
 function describe(w: Workout): string {
   const sets = w.blocks.reduce((n, b) => n + b.sets.length, 0)
-  const blocks = w.blocks.length
-  const blockPart = blocks > 1 ? `${blocks} blocks` : w.blocks[0]?.label ?? ''
-  return `${formatTime(totalDuration(w))} · ${blockPart} · ${sets} ${sets === 1 ? 'set' : 'sets'}`
+  const parts = [formatTime(totalDuration(w))]
+  if (w.blocks.length > 1) parts.push(`${w.blocks.length} blocks`)
+  parts.push(`${sets} ${sets === 1 ? 'set' : 'sets'}`)
+  return parts.join(' · ')
 }
 
 interface CardProps {

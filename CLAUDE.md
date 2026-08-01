@@ -38,7 +38,10 @@ https://claude.ai/code/artifact/f9493707-f78e-4004-8377-cba3b34e32bb
   (`COUNTDOWN_SECONDS`) — see `src/model/types.ts`.
 - The nested model is for editing/storage only; `compile()` in
   `src/model/compile.ts` flattens it to a segment timeline the runner walks.
-  Trailing rests are trimmed so sessions end on effort.
+  Trailing rests are trimmed so sessions end on effort. The displayed Total
+  (`totalDuration`) is deliberately nominal instead: no prep countdown,
+  interval rests all count, only a trailing set rest dropped — Tabata reads
+  4:00 even though the actual session runs 3:55.
 - Storage: localStorage key `crossfitclock.workouts.v1`; presets reseed when
   it's empty. Presets carry `preset: true` and are read-only in the UI (no
   edit/delete — Copy is the customize path); `loadWorkouts` re-flags legacy

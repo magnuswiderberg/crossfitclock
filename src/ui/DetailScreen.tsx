@@ -46,7 +46,7 @@ export function DetailScreen({ workout, onStart, onEdit, onCopy, onDelete, onBac
 
       {workout.blocks.map((block) => (
         <div key={block.id} className="block-card">
-          <div className="detail-block-label">{block.label}</div>
+          {workout.blocks.length > 1 && <div className="detail-block-label">{block.label}</div>}
 
           {block.sets.map((set) => (
             <div key={set.id} className="set-card">

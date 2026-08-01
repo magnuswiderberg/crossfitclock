@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { uid, type Workout } from '../model/types'
-import { formatTime, totalDuration } from '../model/compile'
+import { compile, formatTime, totalDuration } from '../model/compile'
 
 interface Props {
   workout: Workout
@@ -55,7 +55,9 @@ export function EditScreen({ workout, onSave, onCancel }: Props) {
         if (s.intervals.length === 0) list.push(`Set "${s.label || '…'}" needs at least one interval.`)
       }
     }
-    if (totalDuration(draft) === 0) list.push('Add some work time — the workout is empty.')
+    // Nominal totalDuration counts rest-only workouts, so check the compiled
+    // timeline: no work segments means nothing to run.
+    if (compile(draft).length === 0) list.push('Add some work time — the workout is empty.')
     return [...new Set(list)]
   }, [draft])
 
