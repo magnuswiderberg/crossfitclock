@@ -306,6 +306,68 @@ input[type='number'] {
   background: var(--card-hi);
 }
 
+/* ---------- silent-mode hint ---------- */
+.hint-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 16, 18, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 20;
+}
+
+.hint-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 28px 24px;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.hint-card h2 {
+  font-family: var(--display);
+  font-size: 26px;
+  letter-spacing: 0.04em;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+
+.hint-card p {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.hint-card p strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.hint-card .btn {
+  margin-top: 6px;
+  padding: 14px;
+  font-size: 15px;
+}
+
+.hint-link {
+  align-self: center;
+  margin-top: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.hint-link:hover {
+  color: var(--text);
+}
+
 /* ---------- run screen ---------- */
 .run {
   position: fixed;
@@ -496,6 +558,14 @@ input[type='number'] {
   width: 220px;
   padding: 14px;
   font-size: 15px;
+}
+
+.overlay .overlay-note {
+  max-width: 260px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .done-center {

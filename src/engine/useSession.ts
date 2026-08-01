@@ -65,7 +65,7 @@ export interface SessionOptions {
 export function useSession(
   segments: Segment[],
   opts?: SessionOptions,
-): [SessionSnapshot, SessionControls] {
+): [SessionSnapshot, SessionControls, boolean] {
   const totals = useMemo(() => {
     let acc = 0
     const starts = segments.map((s) => {
@@ -81,6 +81,11 @@ export function useSession(
 
   // Frozen at first render: restore describes a moment, not a live input.
   const [restore] = useState(() => opts?.restore ?? null)
+
+  // True while the AudioContext can't run and beeps are lost — after a
+  // reload (no gesture yet) or when iOS wedged the context while another
+  // app held the audio session. The UI prompts for the tap that fixes it.
+  const [audioBlocked, setAudioBlocked] = useState(false)
 
   /** Segment position at `elapsed` seconds into the session; null = finished. */
   const locate = useCallback(
@@ -222,6 +227,9 @@ export function useSession(
       rescheduleBeeps()
       r.raf = requestAnimationFrame(tick)
     }
+    // On a fresh start the Start tap already unlocked audio and this is a
+    // no-op; after a reload-restore it surfaces the blocked state right away.
+    void initAudio().then(() => setAudioBlocked(!audioRunning()))
 
     // The audio clock stalls while the OS suspends it (screen lock, deep
     // background, another app grabbing the audio session) even though
@@ -229,14 +237,24 @@ export function useSession(
     // late. When the tab returns, try to resume the context (iOS leaves it
     // 'interrupted' after e.g. starting music) and re-anchor the beeps.
     const onVisibility = () => {
-      if (document.visibilityState === 'visible') void initAudio().then(rescheduleBeeps)
+      if (document.visibilityState === 'visible')
+        void initAudio().then(() => {
+          rescheduleBeeps()
+          setAudioBlocked(!audioRunning())
+        })
     }
     // After a reload there has been no user gesture yet, so the AudioContext
     // can't start. Unlock it on the first tap and schedule the beeps then.
     const unlock = () => {
       primeSpeech()
-      if (audioRunning()) return
-      void initAudio().then(rescheduleBeeps)
+      if (audioRunning()) {
+        setAudioBlocked(false)
+        return
+      }
+      void initAudio().then(() => {
+        rescheduleBeeps()
+        setAudioBlocked(!audioRunning())
+      })
     }
     document.addEventListener('visibilitychange', onVisibility)
     window.addEventListener('pointerdown', unlock)
@@ -334,5 +352,5 @@ export function useSession(
     [tick, rescheduleBeeps, locate, segments, scheduleBeeps, totals],
   )
 
-  return [snap, controls]
+  return [snap, controls, audioBlocked]
 }

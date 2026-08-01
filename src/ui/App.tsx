@@ -16,6 +16,7 @@ import { EditScreen } from './EditScreen'
 import { RunScreen } from './RunScreen'
 import { DetailScreen } from './DetailScreen'
 import { SyncScreen } from './SyncScreen'
+import { SilentHintModal, dismissSilentHint, silentHintPending } from './SilentHint'
 
 type View =
   | { name: 'home' }
@@ -45,6 +46,24 @@ function initialView(): View {
 export function App() {
   const [workouts, setWorkouts] = useState<Workout[]>(loadWorkouts)
   const [view, setView] = useState<View>(initialView)
+  // A Start held back by the one-time iOS silent-switch hint; the session
+  // begins when the hint is dismissed.
+  const [pendingStart, setPendingStart] = useState<Workout | null>(null)
+
+  const startSession = (w: Workout) => {
+    if (silentHintPending()) setPendingStart(w)
+    else setView({ name: 'run', workout: w })
+  }
+
+  const hintGate = pendingStart && (
+    <SilentHintModal
+      onClose={() => {
+        dismissSilentHint()
+        setPendingStart(null)
+        setView({ name: 'run', workout: pendingStart })
+      }}
+    />
+  )
 
   useEffect(() => {
     saveWorkouts(workouts)
@@ -98,18 +117,21 @@ export function App() {
   if (view.name === 'detail') {
     const w = view.workout
     return (
-      <DetailScreen
-        workout={w}
-        onStart={() => setView({ name: 'run', workout: w })}
-        onEdit={() => setView({ name: 'edit', workout: w, isNew: false })}
-        onCopy={() => setView({ name: 'edit', workout: duplicateWorkout(w), isNew: true })}
-        onDelete={() => {
-          recordDeletion(w.id)
-          setWorkouts((list) => list.filter((x) => x.id !== w.id))
-          setView({ name: 'home' })
-        }}
-        onBack={() => setView({ name: 'home' })}
-      />
+      <>
+        <DetailScreen
+          workout={w}
+          onStart={() => startSession(w)}
+          onEdit={() => setView({ name: 'edit', workout: w, isNew: false })}
+          onCopy={() => setView({ name: 'edit', workout: duplicateWorkout(w), isNew: true })}
+          onDelete={() => {
+            recordDeletion(w.id)
+            setWorkouts((list) => list.filter((x) => x.id !== w.id))
+            setView({ name: 'home' })
+          }}
+          onBack={() => setView({ name: 'home' })}
+        />
+        {hintGate}
+      </>
     )
   }
 
@@ -124,12 +146,15 @@ export function App() {
   }
 
   return (
-    <HomeScreen
-      workouts={workouts}
-      onStart={(w) => setView({ name: 'run', workout: w })}
-      onInspect={(w) => setView({ name: 'detail', workout: w })}
-      onNew={() => setView({ name: 'edit', workout: emptyWorkout(), isNew: true })}
-      onSync={() => setView({ name: 'sync' })}
-    />
+    <>
+      <HomeScreen
+        workouts={workouts}
+        onStart={startSession}
+        onInspect={(w) => setView({ name: 'detail', workout: w })}
+        onNew={() => setView({ name: 'edit', workout: emptyWorkout(), isNew: true })}
+        onSync={() => setView({ name: 'sync' })}
+      />
+      {hintGate}
+    </>
   )
 }

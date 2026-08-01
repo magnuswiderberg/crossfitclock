@@ -37,7 +37,7 @@ function nextUpText(seg: Segment, next: Segment | undefined): string {
 
 export function RunScreen({ workout, restore, onExit }: Props) {
   const segments = useMemo(() => compile(workout), [workout])
-  const [snap, controls] = useSession(segments, {
+  const [snap, controls, audioBlocked] = useSession(segments, {
     restore,
     onPersist: (s) => {
       if (s) saveActiveSession({ workout, startedAt: s.startedAt, pausedAt: s.pausedAt })
@@ -156,6 +156,19 @@ export function RunScreen({ workout, restore, onExit }: Props) {
           </svg>
         </button>
       </div>
+
+      {audioBlocked && snap.status === 'running' && (
+        // The tap itself does the unlocking (useSession's window pointerdown
+        // listener runs before this click); stopping propagation just keeps
+        // it from also pausing the clock.
+        <div className="overlay" onClick={(e) => e.stopPropagation()}>
+          <h2>Beeps muted</h2>
+          <p className="overlay-note">
+            The system cut the timer&rsquo;s audio when another app took over the sound.
+          </p>
+          <button className="btn btn-primary">Tap to unmute</button>
+        </div>
+      )}
 
       {snap.status === 'paused' && (
         <div className="overlay" onClick={(e) => e.stopPropagation()}>

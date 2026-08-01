@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import type { Workout } from '../model/types'
 import { formatTime, totalDuration } from '../model/compile'
 import { initAudio } from '../engine/audio'
 import { primeSpeech } from '../engine/speech'
+import { SilentHintModal, isIos } from './SilentHint'
 
 interface Props {
   workouts: Workout[]
@@ -56,6 +58,7 @@ function WorkoutCard({ workout: w, onStart, onInspect }: CardProps) {
 export function HomeScreen({ workouts, onStart, onInspect, onNew, onSync }: Props) {
   const own = workouts.filter((w) => !w.preset)
   const presets = workouts.filter((w) => w.preset)
+  const [showHint, setShowHint] = useState(false)
 
   return (
     <div className="screen">
@@ -82,6 +85,13 @@ export function HomeScreen({ workouts, onStart, onInspect, onNew, onSync }: Prop
           ))}
         </>
       )}
+
+      {isIos() && (
+        <button className="hint-link" onClick={() => setShowHint(true)}>
+          Beeps &amp; Silent Mode
+        </button>
+      )}
+      {showHint && <SilentHintModal onClose={() => setShowHint(false)} />}
     </div>
   )
 }

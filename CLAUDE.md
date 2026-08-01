@@ -71,6 +71,14 @@ https://claude.ai/code/artifact/f9493707-f78e-4004-8377-cba3b34e32bb
   throttling in background tabs. They are re-anchored on
   `visibilitychange → visible` (the audio clock stalls while the OS suspends
   it) and on the first tap after a reload (audio needs a user gesture).
+  If the context won't return to 'running' (iOS wedges it at 'interrupted'
+  after another app, e.g. Spotify, grabs the audio session), `initAudio`
+  closes it and builds a fresh one — resume() alone never recovers there.
 - `navigator.audioSession.type = 'ambient'` so beeps mix with the user's
   music (Spotify/YouTube) instead of pausing or ducking it. Trade-off: iOS
-  mutes ambient audio while the ringer switch is on silent.
+  mutes ambient audio while the ringer switch is on silent. `'playback'` was
+  tried and rejected (2026-08-01); the silent switch is undetectable from the
+  web, so a one-time iOS hint (`src/ui/SilentHint.tsx`, localStorage
+  `crossfitclock.silenthint.v2`) gates the first Start tap and stays
+  reachable via a "Beeps & Silent Mode" link on the home screen (which
+  deliberately does not mark the hint as seen).
