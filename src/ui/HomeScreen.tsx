@@ -10,6 +10,7 @@ interface Props {
   onStart: (w: Workout) => void
   onInspect: (w: Workout) => void
   onNew: () => void
+  onImport: () => void
   onSync: () => void
 }
 
@@ -56,7 +57,7 @@ function WorkoutCard({ workout: w, onStart, onInspect }: CardProps) {
   )
 }
 
-export function HomeScreen({ workouts, onStart, onInspect, onNew, onSync }: Props) {
+export function HomeScreen({ workouts, onStart, onInspect, onNew, onImport, onSync }: Props) {
   const own = workouts.filter((w) => !w.preset)
   const presets = workouts.filter((w) => w.preset)
   const [showHint, setShowHint] = useState(false)
@@ -76,6 +77,9 @@ export function HomeScreen({ workouts, onStart, onInspect, onNew, onSync }: Prop
       ))}
       <button className="workout-new" onClick={onNew}>
         ＋ New workout
+      </button>
+      <button className="workout-new" onClick={onImport}>
+        ＋ Add from share code
       </button>
 
       {presets.length > 0 && (

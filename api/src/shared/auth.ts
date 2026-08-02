@@ -25,14 +25,19 @@ export function verifySecret(secret: string, stored: string): boolean {
 }
 
 // No easily-confused characters (I/L/O/0/1).
-const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+export const ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+
+/** Random code from the unambiguous alphabet, e.g. "K7QM". */
+export function generateCode(length: number): string {
+  return Array.from(randomBytes(length), (b) => ALPHABET[b % ALPHABET.length]).join('')
+}
 
 /**
  * Sync code shown once to the user, e.g. "K7QM2X". Six chars ≈ 31^6 ≈ 890M
  * combinations: short enough to type on a phone, far too many to guess online.
  */
 export function generateSecret(): string {
-  return Array.from(randomBytes(6), (b) => ALPHABET[b % ALPHABET.length]).join('')
+  return generateCode(6)
 }
 
 export interface Credentials {

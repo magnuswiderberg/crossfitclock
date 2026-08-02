@@ -11,6 +11,7 @@ An interval timer PWA for Tabata and CrossFit sessions. The screen is the timer:
 - Edit mode: create, edit, duplicate, and delete workouts; presets are seeded on first launch.
 - Fully offline PWA — workouts live in localStorage, fonts and assets are self-hosted.
 - Optional sync across devices (edit on desktop, run on phone): claim a handle, get a sync code, connect other devices with it — no email or password. Backed by Azure Static Web Apps functions + Cosmos DB; the app works fully offline without it. See [docs/database-sync-plan.md](docs/database-sync-plan.md).
+- Share workouts with a short code: tap **Share** on a workout to get a 4-character code, anyone enters it under **Add from share code** on their home screen to preview and add it — no account needed to receive. Shared codes are listed (and revocable) on the Sync screen.
 
 ## Local development
 
@@ -76,11 +77,11 @@ Notes for development:
 
 ```
 src/
-  model/      # Workout types, presets, localStorage, sync client, timeline compiler
+  model/      # Workout types, presets, localStorage, sync + share clients, timeline compiler
   engine/     # Session runner (performance.now-based), Web Audio beeps, wake lock
   ui/         # App shell, Home, Edit, Run, and Sync screens
   styles.css  # Design tokens and all styling
-api/          # Azure Functions sync API (account claim/login, workout sync)
+api/          # Azure Functions API (account claim/login, workout sync, share codes)
 infra/        # Bicep templates and deploy script
 ```
 

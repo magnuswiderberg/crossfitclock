@@ -16,6 +16,8 @@ import { EditScreen } from './EditScreen'
 import { RunScreen } from './RunScreen'
 import { DetailScreen } from './DetailScreen'
 import { SyncScreen } from './SyncScreen'
+import { ImportScreen } from './ImportScreen'
+import { ShareModal } from './ShareModal'
 import { SilentHintModal, dismissSilentHint, silentHintPending } from './SilentHint'
 
 type View =
@@ -24,6 +26,7 @@ type View =
   | { name: 'edit'; workout: Workout; isNew: boolean }
   | { name: 'run'; workout: Workout; restore?: SessionRestore }
   | { name: 'sync' }
+  | { name: 'import' }
 
 /** Reopen a session that was still in progress when the page last unloaded. */
 function initialView(): View {
@@ -49,6 +52,8 @@ export function App() {
   // A Start held back by the one-time iOS silent-switch hint; the session
   // begins when the hint is dismissed.
   const [pendingStart, setPendingStart] = useState<Workout | null>(null)
+  // Workout whose share modal is open (from the detail screen).
+  const [shareTarget, setShareTarget] = useState<Workout | null>(null)
 
   // One history entry marks "somewhere below home", so the system back
   // button/gesture (browser tabs, Android PWAs) returns to the home screen
@@ -66,6 +71,9 @@ export function App() {
       history.pushState({ sub: true }, '')
       subEntryRef.current = true
     }
+    // A share modal left open (e.g. system back skipped its Done button)
+    // must not resurface on the next detail screen.
+    setShareTarget(null)
     setView(v)
   }
 
@@ -177,6 +185,7 @@ export function App() {
           onStart={() => startSession(w)}
           onEdit={() => navigate({ name: 'edit', workout: w, isNew: false })}
           onCopy={() => navigate({ name: 'edit', workout: duplicateWorkout(w), isNew: true })}
+          onShare={() => setShareTarget(w)}
           onDelete={() => {
             recordDeletion(w.id)
             setWorkouts((list) => list.filter((x) => x.id !== w.id))
@@ -184,6 +193,16 @@ export function App() {
           }}
           onBack={goHome}
         />
+        {shareTarget && (
+          <ShareModal
+            workout={shareTarget}
+            onClose={() => setShareTarget(null)}
+            onOpenSync={() => {
+              setShareTarget(null)
+              navigate({ name: 'sync' })
+            }}
+          />
+        )}
         {hintGate}
       </>
     )
@@ -195,6 +214,20 @@ export function App() {
     )
   }
 
+  if (view.name === 'import') {
+    return (
+      <ImportScreen
+        onAdd={(w) => {
+          // fetchShare already rebuilt it with fresh ids; stamp it as edited
+          // now so the next background sync pushes it to this account.
+          setWorkouts((list) => [...list, { ...w, updatedAt: Date.now() }])
+          goHome()
+        }}
+        onBack={goHome}
+      />
+    )
+  }
+
   return (
     <>
       <HomeScreen
@@ -202,6 +235,7 @@ export function App() {
         onStart={startSession}
         onInspect={(w) => navigate({ name: 'detail', workout: w })}
         onNew={() => navigate({ name: 'edit', workout: emptyWorkout(), isNew: true })}
+        onImport={() => navigate({ name: 'import' })}
         onSync={() => navigate({ name: 'sync' })}
       />
       {hintGate}

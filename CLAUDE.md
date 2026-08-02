@@ -57,6 +57,18 @@ https://claude.ai/code/artifact/f9493707-f78e-4004-8377-cba3b34e32bb
   `infra/` (`deploy.ps1`); local dev uses the Docker Cosmos emulator (vnext,
   plain HTTP on :8081) with `npm run api` + a Vite `/api` proxy. Full plan:
   `docs/database-sync-plan.md`.
+- Workout sharing is **code-only, no share URLs** (decided 2026-08-02): on
+  iOS a tapped link opens Safari, whose storage is separate from the
+  installed PWA's, so links import into the wrong place — a typed code works
+  in both. `POST /api/share` stores a public snapshot under a 4-char code
+  (same unambiguous alphabet as sync codes) in partition `share#<CODE>` of
+  the existing container — point-read by code, id-uniqueness turns
+  collisions into 409-reroll. Creating/listing/deleting shares requires the
+  sync account (that's how "my shared codes" is owned and revocable, on the
+  Sync screen); fetching by code is public, so recipients need no account.
+  Re-sharing a workout keeps its code and refreshes the snapshot. Received
+  workouts are rebuilt field-by-field with fresh ids
+  (`parseSharedWorkout` in `src/model/share.ts`) — never trusted as-is.
 - The in-flight session persists to `crossfitclock.session.v1` (workout
   snapshot + wall-clock anchor) and is restored on load, so a reload or PWA
   restart drops back into the running clock. Cleared on finish/exit.

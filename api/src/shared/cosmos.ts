@@ -49,3 +49,28 @@ export interface WorkoutDoc {
   deleted: boolean
   workout: unknown | null
 }
+
+/**
+ * Shared workout, one per share code. Lives in its own partition
+ * "share#<CODE>" with a fixed id, so fetching by code is a point read and
+ * Cosmos's per-partition id uniqueness turns a code collision into a 409
+ * on create.
+ */
+export interface ShareDoc {
+  id: 'share'
+  handle: string
+  type: 'share'
+  code: string
+  /** Handle of the account that created the share; only it may delete. */
+  owner: string
+  /** The owner's workout id, so re-sharing updates the snapshot in place. */
+  workoutId: string
+  name: string
+  workout: unknown
+  createdAt: number
+  updatedAt: number
+}
+
+export function sharePartition(code: string): string {
+  return `share#${code}`
+}

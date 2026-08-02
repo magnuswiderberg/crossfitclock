@@ -735,3 +735,28 @@ input[type='number'] {
 .sync-code-input {
   text-transform: uppercase;
 }
+
+/* ---------- workout sharing ---------- */
+.share-code-display {
+  font-family: var(--display);
+  font-size: 56px;
+  letter-spacing: 0.18em;
+  text-align: center;
+  padding: 8px 0 2px;
+  /* Optical centering: letter-spacing trails the last glyph. */
+  margin-right: -0.18em;
+}
+
+.share-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+}
+
+.btn-small {
+  padding: 6px 10px;
+  font-size: 12px;
+}

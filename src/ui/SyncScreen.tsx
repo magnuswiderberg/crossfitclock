@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Workout } from '../model/types'
 import {
   claimHandle,
@@ -7,6 +7,7 @@ import {
   loadSyncState,
   syncNow,
 } from '../model/sync'
+import { deleteShare, listShares, type ShareInfo } from '../model/share'
 
 interface Props {
   workouts: Workout[]
@@ -22,6 +23,33 @@ export function SyncScreen({ workouts, onWorkoutsChange, onBack }: Props) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  // null = still loading or unreachable — the list renders only once loaded.
+  const [shares, setShares] = useState<ShareInfo[] | null>(null)
+
+  const connectedHandle = state?.handle
+  useEffect(() => {
+    if (!connectedHandle) return
+    let alive = true
+    listShares()
+      .then((s) => alive && setShares(s))
+      .catch(() => alive && setShares(null))
+    return () => {
+      alive = false
+    }
+  }, [connectedHandle])
+
+  const removeShare = async (share: ShareInfo) => {
+    const warning =
+      `Stop sharing "${share.name}"?\n\n` +
+      `The code ${share.code} stops working; copies people already added are theirs to keep.`
+    if (!window.confirm(warning)) return
+    try {
+      await deleteShare(share.code)
+      setShares((list) => list?.filter((s) => s.code !== share.code) ?? null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not delete the share.')
+    }
+  }
 
   /** Run an action, surface its error, and refresh local sync state after. */
   const run = async (action: () => Promise<void>) => {
@@ -109,6 +137,32 @@ export function SyncScreen({ workouts, onWorkoutsChange, onBack }: Props) {
         <p className="sync-note">
           Disconnecting only forgets the handle on this device — nothing is deleted.
         </p>
+
+        <h2 className="section-title">Shared codes</h2>
+        {shares && shares.length > 0 ? (
+          <>
+            <div className="sync-account">
+              {shares.map((s) => (
+                <div key={s.code} className="sync-row">
+                  <span className="sync-value sync-code">{s.code}</span>
+                  <span className="share-name">{s.name}</span>
+                  <button className="btn btn-danger btn-small" onClick={() => void removeShare(s)}>
+                    Delete
+                  </button>
+                </div>
+              ))}
+            </div>
+            <p className="sync-note">
+              Anyone with a code can add that workout. Deleting a code stops it from working.
+            </p>
+          </>
+        ) : (
+          shares && (
+            <p className="sync-note">
+              Nothing shared yet — open one of your workouts and tap Share to get a code.
+            </p>
+          )
+        )}
       </div>
     )
   }

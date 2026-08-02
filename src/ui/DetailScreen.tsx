@@ -3,18 +3,20 @@ import { formatTime, totalDuration } from '../model/compile'
 import { initAudio } from '../engine/audio'
 import { primeSpeech } from '../engine/speech'
 import { VoiceToggle } from './VoiceToggle'
+import { WorkoutOutline } from './WorkoutOutline'
 
 interface Props {
   workout: Workout
   onStart: () => void
   onEdit: () => void
   onCopy: () => void
+  onShare: () => void
   onDelete: () => void
   onBack: () => void
 }
 
 /** Read-only view of a workout, so presets can be inspected before starting or copying. */
-export function DetailScreen({ workout, onStart, onEdit, onCopy, onDelete, onBack }: Props) {
+export function DetailScreen({ workout, onStart, onEdit, onCopy, onShare, onDelete, onBack }: Props) {
   return (
     <div className="screen">
       <div className="screen-head">
@@ -44,39 +46,7 @@ export function DetailScreen({ workout, onStart, onEdit, onCopy, onDelete, onBac
 
       <VoiceToggle />
 
-      {workout.blocks.map((block) => (
-        <div key={block.id} className="block-card">
-          {workout.blocks.length > 1 && <div className="detail-block-label">{block.label}</div>}
-
-          {block.sets.map((set) => (
-            <div key={set.id} className="set-card">
-              <div className="detail-row detail-set-head">
-                <span>{set.label}</span>
-                <span className="detail-times">
-                  {set.rounds} {set.rounds === 1 ? 'round' : 'rounds'}
-                </span>
-              </div>
-
-              {set.intervals.map((iv) => (
-                <div key={iv.id} className="detail-row">
-                  <span>{iv.label?.trim() || 'Work'}</span>
-                  <span className="detail-times">
-                    {formatTime(iv.work)}
-                    {iv.rest > 0 && ` · rest ${formatTime(iv.rest)}`}
-                  </span>
-                </div>
-              ))}
-
-              {set.restAfterSet > 0 && (
-                <div className="detail-row detail-rest">
-                  <span>Set rest</span>
-                  <span className="detail-times">{formatTime(set.restAfterSet)}</span>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      ))}
+      <WorkoutOutline workout={workout} />
 
       <div className="row">
         <button className="btn" onClick={onCopy}>
@@ -86,6 +56,9 @@ export function DetailScreen({ workout, onStart, onEdit, onCopy, onDelete, onBac
           <>
             <button className="btn" onClick={onEdit}>
               Edit
+            </button>
+            <button className="btn" onClick={onShare}>
+              Share
             </button>
             <span className="grow" />
             <button
