@@ -123,6 +123,11 @@ input[type='number'] {
   color: var(--text);
 }
 
+/* Teal call-to-action — for actions that shouldn't compete with Start red. */
+.btn-accent {
+  background: var(--rest);
+}
+
 .btn-danger {
   background: none;
   color: var(--muted);
@@ -352,6 +357,35 @@ input[type='number'] {
   margin-top: 6px;
   padding: 14px;
   font-size: 15px;
+}
+
+/* Quiet install nudge under the workout lists; gone once running installed. */
+.install-banner {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.install-banner p {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.install-banner p strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.install-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
 }
 
 .hint-link {

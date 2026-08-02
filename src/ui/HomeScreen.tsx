@@ -4,6 +4,7 @@ import { formatTime, totalDuration } from '../model/compile'
 import { initAudio } from '../engine/audio'
 import { primeSpeech } from '../engine/speech'
 import { SilentHintModal, isIos } from './SilentHint'
+import { InstallHint, InstallLink } from './InstallHint'
 
 interface Props {
   workouts: Workout[]
@@ -82,6 +83,8 @@ export function HomeScreen({ workouts, onStart, onInspect, onNew, onImport, onSy
         ＋ Add from share code
       </button>
 
+      <InstallHint />
+
       {presets.length > 0 && (
         <>
           <h2 className="section-title">Presets</h2>
@@ -91,6 +94,7 @@ export function HomeScreen({ workouts, onStart, onInspect, onNew, onImport, onSy
         </>
       )}
 
+      <InstallLink />
       {isIos() && (
         <button className="hint-link" onClick={() => setShowHint(true)}>
           Beeps &amp; Silent Mode
