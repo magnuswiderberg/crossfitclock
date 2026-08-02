@@ -194,11 +194,11 @@ export function useSession(
     // clock), so they fire from here — silent while the tab is throttled in
     // the background, where the beeps still cover the boundaries. Each
     // segment announces itself as it starts: "Rest", or the interval label
-    // (unlabeled work gets nothing — the go-beep already marks it).
+    // (unlabeled work reads "Work", matching what the screen shows).
     if (loc.index !== spokenRef.current) {
       spokenRef.current = loc.index
       if (seg.type === 'rest' || seg.type === 'setRest') speak('Rest')
-      else if (seg.type === 'work' && seg.label !== 'Work') speak(seg.label)
+      else if (seg.type === 'work') speak(seg.label)
     }
 
     setSnap({
