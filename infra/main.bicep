@@ -2,14 +2,19 @@
 // resource group, and the Cosmos database/container into the resource group
 // that holds the existing Cosmos account.
 //
-//   az deployment group create -g rg-magnuswiderbergse -f infra/main.bicep
+//   az deployment group create -g rg-static-sites -f infra/main.bicep
 //
 // See infra/deploy.ps1 for the full deploy (infra + app content).
 
 param swaName string = 'swa-crossfitclock'
-param location string = 'westeurope'
-param cosmosAccountName string = 'superherofightcosmosy43yuofavrlja'
-param cosmosResourceGroup string = 'rg-superherofight'
+// Static Web Apps only run in a handful of regions. West Europe would be
+// closest to the Sweden Central Cosmos account, but it is currently closed to
+// new customers ("RequestDisallowedByAzure"), so this uses East US 2 — the
+// resource group's own region. Sync is one round trip on app load, so the
+// extra hop to Cosmos is not felt during a workout.
+param location string = 'eastus2'
+param cosmosAccountName string = 'mwse-cosmos'
+param cosmosResourceGroup string = 'rg-common'
 param cosmosDatabaseName string = 'crossfitclock'
 
 module cosmos 'cosmos.bicep' = {

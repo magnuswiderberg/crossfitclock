@@ -60,11 +60,20 @@ docker run -d -p 10000-10002:10000-10002 mcr.microsoft.com/azure-storage/azurite
 
 Infrastructure is Bicep in [infra/](infra/): an Azure Static Web App (Free)
 with managed functions, plus a `crossfitclock` database in an existing
-serverless Cosmos account. One script deploys infra and content:
+Cosmos account. One script deploys infra and content:
 
 ```powershell
+copy infra\deploy.local.example.json infra\deploy.local.json  # once, then fill in
 .\infra\deploy.ps1
 ```
+
+`infra/deploy.local.json` names the target Azure directory. It's gitignored —
+those ids identify a specific tenant, so they stay out of the repo; run
+`az account show` to see yours. The script refuses to deploy unless the
+logged-in `az` context matches them, switching subscription on its own when it
+can, so a stale login can't publish into the wrong tenant. In CI, where there's
+no working tree to drop a file into, set `AZURE_TENANT_ID` and
+`AZURE_SUBSCRIPTION_ID` instead.
 
 Notes for development:
 

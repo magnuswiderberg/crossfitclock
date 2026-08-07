@@ -6,19 +6,22 @@ source of truth and the timer never depends on the network.
 
 ## Architecture
 
-- **Hosting**: Azure Static Web Apps (Free tier) in `rg-magnuswiderbergse`,
+- **Hosting**: Azure Static Web Apps (Free tier) in `rg-static-sites`,
   serving the PWA plus managed Azure Functions under `/api/*` (same origin, no
-  CORS).
-- **Database**: existing serverless Cosmos DB account
-  `superherofightcosmosy43yuofavrlja` in `rg-superherofight`. A new SQL
-  database `crossfitclock` with one container `data` (partition key
-  `/handle`). Serverless account → no throughput settings.
+  CORS). The SWA itself sits in East US 2; West Europe would be closer to the
+  Sweden Central Cosmos account but is closed to new customers.
+- **Database**: existing Cosmos DB account `mwse-cosmos` in `rg-common`. A new
+  SQL database `crossfitclock` with one container `data` (partition key
+  `/handle`), provisioned at the 400 RU/s minimum — the account is free-tier
+  (provisioned, not serverless), so that sits inside the free 1000 RU/s.
+  The account had `disableLocalAuth: true`; it was turned off because SWA
+  *managed* functions have no managed identity, so key auth is the only way in.
 - **Local dev**: Cosmos emulator (vnext) in Docker at `http://localhost:8081`
   (plain HTTP, well-known key), Functions via Core Tools on port 7071, Vite
   dev server proxies `/api` → `localhost:7071`.
 - **Infra as code**: Bicep in `infra/`, deployed with `infra/deploy.ps1`.
   The Cosmos database/container is created cross-resource-group via a module
-  scoped to `rg-superherofight`; the Cosmos key is injected into SWA function
+  scoped to `rg-common`; the Cosmos key is injected into SWA function
   app settings at deploy time via `listKeys`.
 
 ## Identity: handle + sync code (no email)

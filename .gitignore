@@ -16,6 +16,9 @@ npm-debug.log*
 .env.*
 !.env.example
 
+# Deploy target (Azure tenant/subscription ids)
+infra/deploy.local.json
+
 # Editor / OS
 .vscode/*
 !.vscode/extensions.json
