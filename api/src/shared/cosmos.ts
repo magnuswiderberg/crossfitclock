@@ -74,3 +74,27 @@ export interface ShareDoc {
 export function sharePartition(code: string): string {
   return `share#${code}`
 }
+
+/**
+ * A synthesized announcement. Like ShareDoc it lives alone in its partition
+ * ("clip#<key>") under a fixed id, so fetching one is a point read. Clips are
+ * not owned: the key is a hash of voice, style and text, so the same words
+ * from any user resolve to the same document.
+ */
+export interface ClipDoc {
+  id: 'clip'
+  handle: string
+  type: 'clip'
+  key: string
+  /** Normalized text that was synthesized, kept for debugging. */
+  text: string
+  voice: string
+  style: string
+  /** MP3 bytes, base64 (~7-15 KB for one word, against a 2 MB doc limit). */
+  audio: string
+  createdAt: number
+}
+
+export function clipPartition(key: string): string {
+  return `clip#${key}`
+}
