@@ -63,14 +63,18 @@ function escapeXml(text: string): string {
 }
 
 /**
- * Synthesize one clip. Returns the MP3, or null when the service refused —
- * the caller reports that per clip rather than failing the batch, because the
+ * Synthesize one clip. Returns the MP3, or the status to report for it — the
+ * caller reports that per clip rather than failing the batch, because the
  * client's fallback (Web Speech) is always available.
+ *
+ * The pending/failed split is what keeps the client from either giving up on
+ * a word forever or asking for it forever: "pending" means try again,
+ * "failed" means nothing will change until this service is fixed.
  */
-async function synthesize(text: string, style: string): Promise<Buffer | null> {
+async function synthesize(text: string, style: string): Promise<Buffer | 'pending' | 'failed'> {
   const key = process.env.SPEECH_KEY
   const region = process.env.SPEECH_REGION
-  if (!key || !region) return null
+  if (!key || !region) return 'failed'
 
   const ssml =
     `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" ` +
@@ -78,17 +82,24 @@ async function synthesize(text: string, style: string): Promise<Buffer | null> {
     `<voice name="${VOICE}"><mstts:express-as style="${style}">` +
     `${escapeXml(text)}</mstts:express-as></voice></speak>`
 
-  const res = await fetch(`https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`, {
-    method: 'POST',
-    headers: {
-      'Ocp-Apim-Subscription-Key': key,
-      'Content-Type': 'application/ssml+xml',
-      'X-Microsoft-OutputFormat': OUTPUT_FORMAT,
-      'User-Agent': 'crossfitclock',
-    },
-    body: ssml,
-  })
-  if (!res.ok) return null
+  let res: Response
+  try {
+    res = await fetch(`https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`, {
+      method: 'POST',
+      headers: {
+        'Ocp-Apim-Subscription-Key': key,
+        'Content-Type': 'application/ssml+xml',
+        'X-Microsoft-OutputFormat': OUTPUT_FORMAT,
+        'User-Agent': 'crossfitclock',
+      },
+      body: ssml,
+    })
+  } catch {
+    return 'pending'
+  }
+  // 429 is F0's 20-requests-per-minute cap and 5xx is transient; anything else
+  // (bad SSML, a revoked key) would fail identically on a retry.
+  if (!res.ok) return res.status === 429 || res.status >= 500 ? 'pending' : 'failed'
   return Buffer.from(await res.arrayBuffer())
 }
 
@@ -107,9 +118,7 @@ async function resolveClip(item: ClipRequest): Promise<ClipStatus> {
   if (resource) return 'ready'
 
   const audio = await synthesize(text, style)
-  // Most likely a 429 against F0's 20-per-minute cap. "pending" tells the
-  // client to ask again later rather than to give up on this text forever.
-  if (!audio) return 'pending'
+  if (!Buffer.isBuffer(audio)) return audio
 
   const doc: ClipDoc = {
     id: 'clip',

@@ -157,27 +157,46 @@ text already. Nothing ties a clip to an account.
 
 ## Status
 
-Done:
+The feature is written end to end. Everything below is typechecked and builds;
+none of it has been run against a real Speech account or Cosmos.
 
-- `src/audio/` clips + `scripts/build-audio.ps1`, mp3 added to the service
-  worker's precache globs.
-- `POST /api/speech` + `GET /api/speech/<key>` and `ClipDoc` (typechecked,
-  never yet run against Cosmos or deployed).
+- `src/audio/` clips + `scripts/build-audio.ps1`. All four mp3s now reach
+  `dist/assets/` and appear in the service worker's precache manifest (they
+  did not before — nothing imported them).
+- `POST /api/speech` + `GET /api/speech/<key>` and `ClipDoc`. A missing
+  `SPEECH_KEY`, or any non-retryable HTTP status, now reports `failed` rather
+  than `pending`, so the client stops asking instead of looping forever.
+- **Bicep** references `mwse-speech` in `rg-common` with `existing` and feeds
+  `SPEECH_KEY` / `SPEECH_REGION` into the SWA app settings beside the Cosmos
+  ones.
+- **Client**: `decodeClip` / `playBuffer` in `audio.ts`; `src/engine/clips.ts`
+  resolves text → `AudioBuffer` (memory → Cache Storage → network, bundled
+  words short-circuiting to the precached mp3); `src/engine/speech.ts` is now
+  an announcer that schedules clips on the audio clock and keeps Web Speech
+  only as the fallback. `useSession` pre-schedules the session's announcements
+  with its beeps — including "Get ready" and "Done", which the Web Speech
+  version never said.
+- **Generation trigger**: `ensureWorkoutClips` runs on editor Save and on
+  import (with a "Preparing audio n/m" line pinned bottom-centre), and
+  silently on opening or starting a workout, which is the retry path.
 
-Next, in order:
+Left to do:
 
-1. **Bicep**: `existing` reference to `mwse-speech` in `rg-common`, feeding
-   `SPEECH_KEY` / `SPEECH_REGION` into the SWA app settings beside the Cosmos
-   ones. Until this lands, a deployed `/api/speech` reports every clip failed.
-2. **Client**: `playBuffer(buffer, delay)` in `audio.ts`; rework
-   `src/engine/speech.ts` from a Web Speech caller into a clip player that
-   pre-schedules announcements on the audio clock alongside the beeps. Nothing
-   imports `src/audio/` yet, so the clips do not even reach `dist` until this
-   step — verify they appear in the precache manifest afterwards.
-3. **Generation trigger** for custom labels, with the progress line.
+- **Deploy** (`infra/deploy.ps1`) so `/api/speech` has a key, then confirm a
+  custom label actually synthesizes and stores.
+- **Test on a phone with a Bluetooth speaker** — that is the bug this whole
+  feature exists to fix, and nothing short of that hardware proves it. Check
+  in particular that announcements now come out of the speaker rather than the
+  phone, and that they still fire with the screen off.
 
-Then test on a phone with a Bluetooth speaker — that is the bug this whole
-feature exists to fix, and nothing short of that hardware proves it.
+### How the pieces line up
+
+The voice, the style table and the key formula are written out in three
+places: `api/src/functions/speech.ts`, `src/engine/clips.ts` and
+`scripts/build-audio.ps1`. The client computes clip keys itself (SubtleCrypto)
+so it can fetch a clip on a later run without asking the API first — which
+means a change to any one of the three silently orphans every existing clip.
+Change them together.
 
 ## Notes for later
 

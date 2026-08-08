@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { setVoiceEnabled, speak, speechSupported, voiceEnabled } from '../engine/speech'
+import { initAudio } from '../engine/audio'
+import { sampleVoice, setVoiceEnabled, voiceEnabled } from '../engine/speech'
 
-/** Opt-in checkbox for voice announcements; hidden when the browser has no speech. */
+/** Opt-in checkbox for voice announcements. */
 export function VoiceToggle() {
   const [on, setOn] = useState(voiceEnabled)
-  if (!speechSupported()) return null
   return (
     <label className="voice-toggle">
       <input
@@ -13,8 +13,9 @@ export function VoiceToggle() {
         onChange={(e) => {
           setVoiceEnabled(e.target.checked)
           setOn(e.target.checked)
-          // Sample doubles as the iOS gesture-unlock for speech.
-          if (e.target.checked) speak('Voice announcements on')
+          // The sample doubles as the gesture that unlocks audio, and as a
+          // preview of the voice the session will actually use.
+          if (e.target.checked) void initAudio().then(sampleVoice)
         }}
       />
       Voice announcements

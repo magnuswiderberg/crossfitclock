@@ -16,6 +16,12 @@ param location string = 'eastus2'
 param cosmosAccountName string = 'mwse-cosmos'
 param cosmosResourceGroup string = 'rg-common'
 param cosmosDatabaseName string = 'crossfitclock'
+// Shared Azure AI Speech account, created by hand and used by several apps —
+// Azure allows one free (F0) account per kind per subscription, so this repo
+// references it rather than creating one. Must be kind 'SpeechServices'; the
+// multi-service 'AIServices' resource has no free tier.
+param speechAccountName string = 'mwse-speech'
+param speechResourceGroup string = 'rg-common'
 
 module cosmos 'cosmos.bicep' = {
   name: 'crossfitclock-cosmos'
@@ -24,6 +30,11 @@ module cosmos 'cosmos.bicep' = {
     accountName: cosmosAccountName
     databaseName: cosmosDatabaseName
   }
+}
+
+resource speech 'Microsoft.CognitiveServices/accounts@2023-05-01' existing = {
+  name: speechAccountName
+  scope: resourceGroup(speechResourceGroup)
 }
 
 resource swa 'Microsoft.Web/staticSites@2023-12-01' = {
@@ -36,8 +47,8 @@ resource swa 'Microsoft.Web/staticSites@2023-12-01' = {
   properties: {}
 }
 
-// The managed functions read Cosmos config from app settings. The key is
-// resolved at deployment time; it never lands in source or outputs.
+// The managed functions read Cosmos and Speech config from app settings. Both
+// keys are resolved at deployment time; neither lands in source or outputs.
 resource swaSettings 'Microsoft.Web/staticSites/config@2023-12-01' = {
   parent: swa
   name: 'appsettings'
@@ -48,6 +59,10 @@ resource swaSettings 'Microsoft.Web/staticSites/config@2023-12-01' = {
       '2024-05-15'
     ).primaryMasterKey
     COSMOS_DATABASE: cosmosDatabaseName
+    // Without these, /api/speech reports every clip failed and the client
+    // falls back to the Web Speech voice.
+    SPEECH_KEY: speech.listKeys().key1
+    SPEECH_REGION: speech.location
   }
 }
 

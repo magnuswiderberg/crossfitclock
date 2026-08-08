@@ -10,6 +10,7 @@ import {
   clearActiveSession,
 } from '../model/storage'
 import { isConnected, recordDeletion, syncNow } from '../model/sync'
+import { ensureWorkoutClips, type ClipProgress } from '../engine/clips'
 import type { SessionRestore } from '../engine/useSession'
 import { HomeScreen } from './HomeScreen'
 import { EditScreen } from './EditScreen'
@@ -54,6 +55,21 @@ export function App() {
   const [pendingStart, setPendingStart] = useState<Workout | null>(null)
   // Workout whose share modal is open (from the detail screen).
   const [shareTarget, setShareTarget] = useState<Workout | null>(null)
+  // Custom-label clip synthesis in flight, when it was triggered by something
+  // the user just did (a save, an import) and deserves a progress line.
+  const [clipProgress, setClipProgress] = useState<ClipProgress | null>(null)
+
+  /**
+   * Have the backend synthesize any custom exercise labels this workout
+   * announces. Never blocks: the workout is already saved, and a clip that
+   * doesn't arrive just means the Web Speech fallback speaks that label. It is
+   * retried whenever the workout is opened, started or saved again.
+   */
+  const prepareAudio = (w: Workout, showProgress = false) => {
+    void ensureWorkoutClips(w, showProgress ? setClipProgress : undefined).finally(() =>
+      setClipProgress(null),
+    )
+  }
 
   // One history entry marks "somewhere below home", so the system back
   // button/gesture (browser tabs, Android PWAs) returns to the home screen
@@ -112,6 +128,10 @@ export function App() {
   }, [])
 
   const startSession = (w: Workout) => {
+    // Too late for this session's announcements, but it is the retry that
+    // matters: a label that failed to synthesize gets another chance every
+    // time the workout is run.
+    prepareAudio(w)
     if (silentHintPending()) setPendingStart(w)
     else navigate({ name: 'run', workout: w })
   }
@@ -149,96 +169,115 @@ export function App() {
     return () => window.clearTimeout(t)
   }, [workouts])
 
-  if (view.name === 'run') {
-    return (
-      <RunScreen
-        workout={view.workout}
-        restore={view.restore}
-        onExit={goHome}
-        backRef={runBackRef}
-      />
-    )
-  }
+  // The clip progress line rides above every screen, so a save can return to
+  // the home screen while its audio is still being prepared.
+  const screen = () => {
+    if (view.name === 'run') {
+      return (
+        <RunScreen
+          workout={view.workout}
+          restore={view.restore}
+          onExit={goHome}
+          backRef={runBackRef}
+        />
+      )
+    }
 
-  if (view.name === 'edit') {
-    return (
-      <EditScreen
-        workout={view.workout}
-        onSave={(w) => {
-          const stamped = { ...w, updatedAt: Date.now() }
-          setWorkouts((list) =>
-            view.isNew ? [...list, stamped] : list.map((x) => (x.id === w.id ? stamped : x)),
-          )
-          goHome()
-        }}
-        onCancel={goHome}
-      />
-    )
-  }
+    if (view.name === 'edit') {
+      return (
+        <EditScreen
+          workout={view.workout}
+          onSave={(w) => {
+            const stamped = { ...w, updatedAt: Date.now() }
+            setWorkouts((list) =>
+              view.isNew ? [...list, stamped] : list.map((x) => (x.id === w.id ? stamped : x)),
+            )
+            prepareAudio(stamped, true)
+            goHome()
+          }}
+          onCancel={goHome}
+        />
+      )
+    }
 
-  if (view.name === 'detail') {
-    const w = view.workout
-    return (
-      <>
-        <DetailScreen
-          workout={w}
-          onStart={() => startSession(w)}
-          onEdit={() => navigate({ name: 'edit', workout: w, isNew: false })}
-          onCopy={() => navigate({ name: 'edit', workout: duplicateWorkout(w), isNew: true })}
-          onShare={() => setShareTarget(w)}
-          onDelete={() => {
-            recordDeletion(w.id)
-            setWorkouts((list) => list.filter((x) => x.id !== w.id))
+    if (view.name === 'detail') {
+      const w = view.workout
+      return (
+        <>
+          <DetailScreen
+            workout={w}
+            onStart={() => startSession(w)}
+            onEdit={() => navigate({ name: 'edit', workout: w, isNew: false })}
+            onCopy={() => navigate({ name: 'edit', workout: duplicateWorkout(w), isNew: true })}
+            onShare={() => setShareTarget(w)}
+            onDelete={() => {
+              recordDeletion(w.id)
+              setWorkouts((list) => list.filter((x) => x.id !== w.id))
+              goHome()
+            }}
+            onBack={goHome}
+          />
+          {shareTarget && (
+            <ShareModal
+              workout={shareTarget}
+              onClose={() => setShareTarget(null)}
+              onOpenSync={() => {
+                setShareTarget(null)
+                navigate({ name: 'sync' })
+              }}
+            />
+          )}
+          {hintGate}
+        </>
+      )
+    }
+
+    if (view.name === 'sync') {
+      return <SyncScreen workouts={workouts} onWorkoutsChange={setWorkouts} onBack={goHome} />
+    }
+
+    if (view.name === 'import') {
+      return (
+        <ImportScreen
+          onAdd={(w) => {
+            // fetchShare already rebuilt it with fresh ids; stamp it as edited
+            // now so the next background sync pushes it to this account.
+            const added = { ...w, updatedAt: Date.now() }
+            setWorkouts((list) => [...list, added])
+            prepareAudio(added, true)
             goHome()
           }}
           onBack={goHome}
         />
-        {shareTarget && (
-          <ShareModal
-            workout={shareTarget}
-            onClose={() => setShareTarget(null)}
-            onOpenSync={() => {
-              setShareTarget(null)
-              navigate({ name: 'sync' })
-            }}
-          />
-        )}
+      )
+    }
+
+    return (
+      <>
+        <HomeScreen
+          workouts={workouts}
+          onStart={startSession}
+          onInspect={(w) => {
+            prepareAudio(w)
+            navigate({ name: 'detail', workout: w })
+          }}
+          onNew={() => navigate({ name: 'edit', workout: emptyWorkout(), isNew: true })}
+          onImport={() => navigate({ name: 'import' })}
+          onSync={() => navigate({ name: 'sync' })}
+        />
         {hintGate}
       </>
     )
   }
 
-  if (view.name === 'sync') {
-    return (
-      <SyncScreen workouts={workouts} onWorkoutsChange={setWorkouts} onBack={goHome} />
-    )
-  }
-
-  if (view.name === 'import') {
-    return (
-      <ImportScreen
-        onAdd={(w) => {
-          // fetchShare already rebuilt it with fresh ids; stamp it as edited
-          // now so the next background sync pushes it to this account.
-          setWorkouts((list) => [...list, { ...w, updatedAt: Date.now() }])
-          goHome()
-        }}
-        onBack={goHome}
-      />
-    )
-  }
-
   return (
     <>
-      <HomeScreen
-        workouts={workouts}
-        onStart={startSession}
-        onInspect={(w) => navigate({ name: 'detail', workout: w })}
-        onNew={() => navigate({ name: 'edit', workout: emptyWorkout(), isNew: true })}
-        onImport={() => navigate({ name: 'import' })}
-        onSync={() => navigate({ name: 'sync' })}
-      />
-      {hintGate}
+      {screen()}
+      {clipProgress && (
+        <p className="clip-progress" role="status">
+          Preparing audio {clipProgress.done}/{clipProgress.total}
+        </p>
+      )}
     </>
   )
 }

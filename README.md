@@ -40,14 +40,17 @@ and the Cosmos DB emulator (vnext) in Docker:
 ```sh
 docker run -d -p 8081:8081 -p 1234:1234 mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:vnext-preview
 cd api && npm install && cd ..
+copy api\local.settings.example.json api\local.settings.json   # once
 npm run dev:all    # Functions host on :7071 + Vite dev server (proxies /api → 7071)
 ```
 
 (Or separately: `npm run api` and `npm run dev` in two terminals.)
 
-`api/local.settings.json` is checked in — it only contains the emulator's
-public well-known key. The database/container are created automatically on
-first use (`COSMOS_INIT=true`). The Functions host also expects
+`api/local.settings.json` is gitignored, because it's where a real Speech key
+would go (see the voice note below). The example it's copied from carries the
+Cosmos emulator's public well-known key, so it needs no editing to run
+everything but voice synthesis. The database/container are created
+automatically on first use (`COSMOS_INIT=true`). The Functions host also expects
 [Azurite](https://learn.microsoft.com/azure/storage/common/storage-use-azurite)
 for its internal storage (`UseDevelopmentStorage=true` — without it the host
 logs "Process reporting unhealthy"):
@@ -80,6 +83,7 @@ Notes for development:
 - Sound starts on the first **Start** tap (browsers require a user gesture before audio). If you hear nothing, check the tab isn't muted.
 - The service worker only registers in production builds. To test PWA/offline behavior, use `npm run build && npm run preview` — and hard-refresh (Ctrl+Shift+R) if you see stale content.
 - Workouts are stored under the localStorage key `crossfitclock.workouts.v1`. Clearing site data reseeds the presets.
+- Voice announcements play as audio clips. The four fixed words ship in `src/audio/` and need nothing, so every preset announces with no backend at all. Only a custom exercise label goes to `/api/speech`, which needs a `SPEECH_KEY` in `api/local.settings.json` — read one with `az cognitiveservices account keys list --name mwse-speech --resource-group rg-common --query key1 -o tsv`. Leave it empty and that label falls back to the browser's own voice, which is also the offline path, so it's worth exercising both ways.
 - To test on a phone on your network: `npm run dev -- --host`, then open the printed network URL. Wake lock and PWA install require HTTPS or localhost, so from another device those features may be unavailable in dev.
 
 ## Project structure
@@ -87,7 +91,8 @@ Notes for development:
 ```
 src/
   model/      # Workout types, presets, localStorage, sync + share clients, timeline compiler
-  engine/     # Session runner (performance.now-based), Web Audio beeps, wake lock
+  engine/     # Session runner, Web Audio beeps, voice announcement clips, wake lock
+  audio/      # The fixed announcement clips (Work, Rest, Get ready, Done)
   ui/         # App shell, Home, Edit, Run, and Sync screens
   styles.css  # Design tokens and all styling
 api/          # Azure Functions API (account claim/login, workout sync, share codes)

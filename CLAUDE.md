@@ -55,7 +55,10 @@ https://claude.ai/code/artifact/f9493707-f78e-4004-8377-cba3b34e32bb
   Sync is offline-first, last-write-wins per workout via `updatedAt`, one
   `POST /api/sync` round trip; presets never sync. Infra is Bicep in
   `infra/` (`deploy.ps1`); local dev uses the Docker Cosmos emulator (vnext,
-  plain HTTP on :8081) with `npm run api` + a Vite `/api` proxy. Full plan:
+  plain HTTP on :8081) with `npm run api` + a Vite `/api` proxy.
+  `api/local.settings.json` is gitignored (it's where a real Speech key goes);
+  copy `api/local.settings.example.json` once — it carries the emulator's
+  public key, so nothing but voice synthesis needs editing. Full plan:
   `docs/database-sync-plan.md`.
 - Workout sharing is **code-only, no share URLs** (decided 2026-08-02): on
   iOS a tapped link opens Safari, whose storage is separate from the
@@ -79,9 +82,13 @@ https://claude.ai/code/artifact/f9493707-f78e-4004-8377-cba3b34e32bb
   interval label. Custom exercise labels are synthesized on demand by
   `/api/speech` (Azure AI Speech, free F0 tier on the shared `mwse-speech`
   account) and stored content-addressed in Cosmos. Voice `en-US-AriaNeural`,
-  style `excited` for work and `shouting` for rest. Web Speech stays as the
-  offline/failure fallback. **In progress** — full plan, status and remaining
-  steps: `docs/voice-clips-plan.md`.
+  style `excited` for work and `shouting` for rest. Clips are addressed by
+  `sha256(voice|style|normalized text)`, a formula spelled out in three places
+  that must change together — see the plan. Web Speech stays as the
+  offline/failure fallback, and is now the only announcement path that can't
+  be pre-scheduled on the audio clock. **Written end to end; not yet deployed
+  or tested on a Bluetooth speaker** — full plan, status and remaining steps:
+  `docs/voice-clips-plan.md`.
 - The in-flight session persists to `crossfitclock.session.v1` (workout
   snapshot + wall-clock anchor) and is restored on load, so a reload or PWA
   restart drops back into the running clock. Cleared on finish/exit.

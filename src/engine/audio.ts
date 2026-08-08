@@ -1,10 +1,13 @@
 /**
- * Beep synthesis via Web Audio. The context is created on the user's Start
- * tap (autoplay policy) and reused for the whole session.
+ * Beep synthesis and clip playback via Web Audio. The context is created on
+ * the user's Start tap (autoplay policy) and reused for the whole session.
  *
- * Every beep takes a delay (seconds from now) and is scheduled on the
+ * Every sound takes a delay (seconds from now) and is scheduled on the
  * AudioContext clock, so a whole session's worth can be queued up front and
- * still fire on time while rAF is throttled in a backgrounded tab.
+ * still fire on time while rAF is throttled in a backgrounded tab. Voice
+ * announcements go through here too (rather than the Web Speech API) so they
+ * follow the same audio route as the beeps — on iOS speech is rendered on the
+ * system speech session and lands on the phone rather than a paired speaker.
  */
 declare global {
   interface Navigator {
@@ -15,7 +18,7 @@ declare global {
 
 let ctx: AudioContext | null = null
 let master: DynamicsCompressorNode | null = null
-const pending = new Set<OscillatorNode>()
+const pending = new Set<AudioScheduledSourceNode>()
 
 /**
  * Resolve once the context reaches 'running', or after a short timeout —
@@ -48,7 +51,7 @@ export async function initAudio(): Promise<void> {
     // Outside a user gesture the new one may start suspended — callers
     // retry on the next tap via the pointerdown unlock listener.
     if ((ctx.state as string) !== 'running') {
-      cancelScheduledBeeps()
+      cancelScheduledSounds()
       void ctx.close().catch(() => {})
       ctx = null
       master = null
@@ -73,17 +76,52 @@ export function audioRunning(): boolean {
   return ctx?.state === 'running'
 }
 
-/** Silence every beep that hasn't sounded yet (pause, restart, unmount). */
-export function cancelScheduledBeeps(): void {
-  for (const osc of pending) {
+/** Silence every sound that hasn't played yet (pause, restart, unmount). */
+export function cancelScheduledSounds(): void {
+  for (const src of pending) {
     try {
-      osc.stop()
+      src.stop()
     } catch {
       // Never started or already stopped.
     }
-    osc.disconnect()
+    src.disconnect()
   }
   pending.clear()
+}
+
+/**
+ * Decode clip bytes into a buffer that `playBuffer` can schedule. Returns null
+ * when there is no context yet (nothing has unlocked audio) or the bytes
+ * aren't decodable audio. Note that decoding detaches `bytes`.
+ *
+ * The result outlives the context it was decoded on — buffers are not bound to
+ * one, which matters because `initAudio` throws the context away and builds a
+ * fresh one to recover from an iOS interruption.
+ */
+export async function decodeClip(bytes: ArrayBuffer): Promise<AudioBuffer | null> {
+  if (!ctx) return null
+  try {
+    return await ctx.decodeAudioData(bytes)
+  } catch {
+    return null
+  }
+}
+
+/** Schedule a decoded clip, sharing the compressor (and route) with the beeps. */
+export function playBuffer(buffer: AudioBuffer, delay = 0, volume = 1): void {
+  if (!ctx || !master) return
+  const src = ctx.createBufferSource()
+  src.buffer = buffer
+  const gain = ctx.createGain()
+  gain.gain.value = volume
+  src.connect(gain).connect(master)
+  src.start(ctx.currentTime + delay)
+  pending.add(src)
+  src.onended = () => {
+    pending.delete(src)
+    src.disconnect()
+    gain.disconnect()
+  }
 }
 
 function tone(freq: number, duration: number, delay = 0, volume = 0.9): void {

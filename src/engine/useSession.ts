@@ -8,10 +8,11 @@ import {
   beepFinish,
   beepGo,
   beepRest,
-  cancelScheduledBeeps,
+  cancelScheduledSounds,
   initAudio,
 } from './audio'
-import { cancelSpeech, primeSpeech, speak } from './speech'
+import { announcementFor, announcementsIn, FINISH_ANNOUNCEMENT } from './clips'
+import { announce, cancelAnnouncements, prepareAnnouncements, primeSpeech } from './speech'
 
 export type SessionStatus = 'running' | 'paused' | 'done'
 
@@ -59,9 +60,10 @@ export interface SessionOptions {
  * Walks the compiled timeline. The session is anchored to a single Date.now()
  * epoch and the current segment is derived from total elapsed time, so the
  * clock survives rAF throttling, device sleep, and even a page reload (via
- * restore/onPersist). Beeps are not fired from the rAF loop: the whole
- * session's beeps are pre-scheduled on the AudioContext clock, and re-anchored
- * whenever that clock may have stalled (tab shown again, audio unlocked).
+ * restore/onPersist). Sound is not fired from the rAF loop: the whole session's
+ * beeps and voice announcements are pre-scheduled on the AudioContext clock,
+ * and re-anchored whenever that clock may have stalled (tab shown again, audio
+ * unlocked).
  */
 export function useSession(
   segments: Segment[],
@@ -130,17 +132,38 @@ export function useSession(
     raf: 0,
   })
 
-  /** Index of the segment that has already been announced. */
+  /** Index of the segment whose announcement moment has passed. */
   const spokenRef = useRef(-1)
+  // Announcements stay off until their clips are decoded, so the first
+  // scheduling pass doesn't announce through the Web Speech fallback while the
+  // real clips are still a few milliseconds away.
+  const clipsReadyRef = useRef(false)
 
   /**
-   * Queue every remaining beep in the session on the audio clock, starting
+   * Queue every remaining sound in the session on the audio clock, starting
    * from `remaining` seconds left in segment `index`. Countdown beeps whose
    * moment has already passed (resume mid-countdown) are skipped.
    */
-  const scheduleBeeps = useCallback(
+  const scheduleSounds = useCallback(
     (index: number, remaining: number) => {
-      cancelScheduledBeeps()
+      cancelScheduledSounds()
+      cancelAnnouncements()
+
+      // The segment we're already in gets no boundary sound below, so its
+      // announcement happens here — but only when it is genuinely starting
+      // (a restart, or a skip landing on it). Re-anchoring mid-segment must
+      // not repeat what was already said.
+      const current = segments[index]
+      if (
+        clipsReadyRef.current &&
+        current &&
+        remaining > current.duration - 0.6 &&
+        spokenRef.current !== index
+      ) {
+        spokenRef.current = index
+        announce(announcementFor(current))
+      }
+
       let boundary = remaining
       for (let i = index; i < segments.length; i++) {
         if (i > index) boundary += segments[i].duration
@@ -155,18 +178,21 @@ export function useSession(
         if (!next) beepFinish(boundary)
         else if (next.type === 'work') beepGo(boundary)
         else beepRest(boundary)
+        if (clipsReadyRef.current) {
+          announce(next ? announcementFor(next) : FINISH_ANNOUNCEMENT, boundary)
+        }
       }
     },
     [segments],
   )
 
-  /** Re-anchor all pending beeps to the current wall-clock position. */
-  const rescheduleBeeps = useCallback(() => {
+  /** Re-anchor all pending sound to the current wall-clock position. */
+  const rescheduleSounds = useCallback(() => {
     const r = ref.current
     if (r.status !== 'running') return
     const loc = locate((Date.now() - r.startMs) / 1000)
-    if (loc) scheduleBeeps(loc.index, loc.remaining)
-  }, [locate, scheduleBeeps])
+    if (loc) scheduleSounds(loc.index, loc.remaining)
+  }, [locate, scheduleSounds])
 
   const tick = useCallback(() => {
     const r = ref.current
@@ -191,16 +217,10 @@ export function useSession(
     const seg = segments[loc.index]
     const workIsNext = segments[loc.index + 1]?.type === 'work'
 
-    // Announcements can't be pre-scheduled like beeps (Web Speech has no
-    // clock), so they fire from here — silent while the tab is throttled in
-    // the background, where the beeps still cover the boundaries. Each
-    // segment announces itself as it starts: "Rest", or the interval label
-    // (unlabeled work reads "Work", matching what the screen shows).
-    if (loc.index !== spokenRef.current) {
-      spokenRef.current = loc.index
-      if (seg.type === 'rest' || seg.type === 'setRest') speak('Rest')
-      else if (seg.type === 'work') speak(seg.label)
-    }
+    // Announcements are pre-scheduled, not fired from here; the tick only
+    // records that this segment's moment has passed, so a re-anchor lands
+    // mid-segment without repeating what was already said.
+    spokenRef.current = loc.index
 
     setSnap({
       status: 'running',
@@ -220,17 +240,26 @@ export function useSession(
     r.pausedAtMs = restore?.pausedAt ?? 0
     const startPaused = restore?.pausedAt != null
     r.status = startPaused ? 'paused' : 'running'
-    // A restore lands mid-segment; announcing it belatedly would be noise.
+    // A restore lands mid-segment; announcing it belatedly would be noise. A
+    // fresh start is at the top of segment 0 and should announce it.
     const loc0 = locate(((startPaused ? r.pausedAtMs : Date.now()) - r.startMs) / 1000)
-    spokenRef.current = loc0?.index ?? -1
+    spokenRef.current = restore ? (loc0?.index ?? -1) : -1
     persistRef.current?.({ startedAt: r.startMs, pausedAt: startPaused ? r.pausedAtMs : null })
     if (!startPaused) {
-      rescheduleBeeps()
+      rescheduleSounds()
       r.raf = requestAnimationFrame(tick)
     }
-    // On a fresh start the Start tap already unlocked audio and this is a
+    // On a fresh start the Start tap already unlocked audio and initAudio is a
     // no-op; after a reload-restore it surfaces the blocked state right away.
-    void initAudio().then(() => setAudioBlocked(!audioRunning()))
+    // Clips can only be decoded once there is a context, so the announcements
+    // join the schedule on the second pass, a moment after the beeps.
+    void initAudio()
+      .then(() => prepareAnnouncements(announcementsIn(segments)))
+      .then(() => {
+        clipsReadyRef.current = true
+        rescheduleSounds()
+        setAudioBlocked(!audioRunning())
+      })
 
     // The audio clock stalls while the OS suspends it (screen lock, deep
     // background, another app grabbing the audio session) even though
@@ -240,7 +269,7 @@ export function useSession(
     const onVisibility = () => {
       if (document.visibilityState === 'visible')
         void initAudio().then(() => {
-          rescheduleBeeps()
+          rescheduleSounds()
           setAudioBlocked(!audioRunning())
         })
     }
@@ -253,7 +282,7 @@ export function useSession(
         return
       }
       void initAudio().then(() => {
-        rescheduleBeeps()
+        rescheduleSounds()
         setAudioBlocked(!audioRunning())
       })
     }
@@ -262,12 +291,12 @@ export function useSession(
 
     return () => {
       cancelAnimationFrame(r.raf)
-      cancelScheduledBeeps()
-      cancelSpeech()
+      cancelScheduledSounds()
+      cancelAnnouncements()
       document.removeEventListener('visibilitychange', onVisibility)
       window.removeEventListener('pointerdown', unlock)
     }
-  }, [segments, tick, rescheduleBeeps, locate, restore])
+  }, [segments, tick, rescheduleSounds, locate, restore])
 
   const controls = useMemo<SessionControls>(
     () => ({
@@ -277,8 +306,8 @@ export function useSession(
         r.status = 'paused'
         r.pausedAtMs = Date.now()
         cancelAnimationFrame(r.raf)
-        cancelScheduledBeeps()
-        cancelSpeech()
+        cancelScheduledSounds()
+        cancelAnnouncements()
         persistRef.current?.({ startedAt: r.startMs, pausedAt: r.pausedAtMs })
         setSnap((s) => ({ ...s, status: 'paused' }))
       },
@@ -288,18 +317,18 @@ export function useSession(
         r.startMs += Date.now() - r.pausedAtMs
         r.status = 'running'
         persistRef.current?.({ startedAt: r.startMs, pausedAt: null })
-        rescheduleBeeps()
+        rescheduleSounds()
         r.raf = requestAnimationFrame(tick)
       },
       restart: () => {
         const r = ref.current
         cancelAnimationFrame(r.raf)
-        cancelSpeech()
+        cancelAnnouncements()
         spokenRef.current = -1
         r.status = 'running'
         r.startMs = Date.now()
         persistRef.current?.({ startedAt: r.startMs, pausedAt: null })
-        rescheduleBeeps()
+        rescheduleSounds()
         r.raf = requestAnimationFrame(tick)
       },
       skip: () => {
@@ -314,14 +343,16 @@ export function useSession(
         persistRef.current?.({ startedAt: r.startMs, pausedAt: null })
         const next = segments[loc.index + 1]
         if (next) {
-          // scheduleBeeps clears the old queue, so it must run before the
+          // scheduleSounds clears the old queue, so it must run before the
           // announcement beep or it would silence it too.
-          scheduleBeeps(loc.index + 1, next.duration)
+          scheduleSounds(loc.index + 1, next.duration)
           if (next.type === 'work') beepGo()
           else beepRest()
         } else {
-          cancelScheduledBeeps()
+          cancelScheduledSounds()
+          cancelAnnouncements()
           beepFinish()
+          announce(FINISH_ANNOUNCEMENT)
         }
         cancelAnimationFrame(r.raf)
         r.raf = requestAnimationFrame(tick)
@@ -343,14 +374,14 @@ export function useSession(
           if (target <= elapsed + 0.05) continue
           r.startMs -= (target - elapsed) * 1000
           persistRef.current?.({ startedAt: r.startMs, pausedAt: null })
-          rescheduleBeeps()
+          rescheduleSounds()
           cancelAnimationFrame(r.raf)
           r.raf = requestAnimationFrame(tick)
           return
         }
       },
     }),
-    [tick, rescheduleBeeps, locate, segments, scheduleBeeps, totals],
+    [tick, rescheduleSounds, locate, segments, scheduleSounds, totals],
   )
 
   return [snap, controls, audioBlocked]

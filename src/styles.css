@@ -794,3 +794,24 @@ input[type='number'] {
   padding: 6px 10px;
   font-size: 12px;
 }
+
+/* Non-blocking status line for background clip synthesis. Pinned to the
+   bottom so it can outlive the screen that started it (a save returns home
+   while its audio is still being prepared) without pushing anything around. */
+.clip-progress {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 20;
+  background: var(--card-hi);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+}
