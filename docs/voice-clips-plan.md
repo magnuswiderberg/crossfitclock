@@ -157,37 +157,39 @@ text already. Nothing ties a clip to an account.
 
 ## Status
 
-The feature is written end to end. Everything below is typechecked and builds;
-none of it has been run against a real Speech account or Cosmos.
+**Shipped** (2026-08-08). Deployed with `infra/deploy.ps1` and tested on a
+phone paired to a Bluetooth speaker: announcements come out of the speaker
+alongside the beeps, which is the bug this whole feature existed to fix.
+Custom labels synthesize and play — "burpees", "pushups" — so the backend
+path is proven end to end, not just the bundled words.
 
-- `src/audio/` clips + `scripts/build-audio.ps1`. All four mp3s now reach
+What landed:
+
+- `src/audio/` clips + `scripts/build-audio.ps1`. All four mp3s reach
   `dist/assets/` and appear in the service worker's precache manifest (they
   did not before — nothing imported them).
 - `POST /api/speech` + `GET /api/speech/<key>` and `ClipDoc`. A missing
-  `SPEECH_KEY`, or any non-retryable HTTP status, now reports `failed` rather
-  than `pending`, so the client stops asking instead of looping forever.
+  `SPEECH_KEY`, or any non-retryable HTTP status, reports `failed` rather than
+  `pending`, so the client stops asking instead of looping forever; `pending`
+  narrows to 429 and 5xx, which are the ones a retry can fix.
 - **Bicep** references `mwse-speech` in `rg-common` with `existing` and feeds
   `SPEECH_KEY` / `SPEECH_REGION` into the SWA app settings beside the Cosmos
   ones.
 - **Client**: `decodeClip` / `playBuffer` in `audio.ts`; `src/engine/clips.ts`
   resolves text → `AudioBuffer` (memory → Cache Storage → network, bundled
-  words short-circuiting to the precached mp3); `src/engine/speech.ts` is now
-  an announcer that schedules clips on the audio clock and keeps Web Speech
-  only as the fallback. `useSession` pre-schedules the session's announcements
-  with its beeps — including "Get ready" and "Done", which the Web Speech
-  version never said.
+  words short-circuiting to the precached mp3); `src/engine/speech.ts` is an
+  announcer that schedules clips on the audio clock and keeps Web Speech only
+  as the fallback. `useSession` pre-schedules the session's announcements with
+  its beeps — including "Get ready" and "Done", which the Web Speech version
+  never said.
 - **Generation trigger**: `ensureWorkoutClips` runs on editor Save and on
   import (with a "Preparing audio n/m" line pinned bottom-centre), and
-  silently on opening or starting a workout, which is the retry path.
-
-Left to do:
-
-- **Deploy** (`infra/deploy.ps1`) so `/api/speech` has a key, then confirm a
-  custom label actually synthesizes and stores.
-- **Test on a phone with a Bluetooth speaker** — that is the bug this whole
-  feature exists to fix, and nothing short of that hardware proves it. Check
-  in particular that announcements now come out of the speaker rather than the
-  phone, and that they still fire with the screen off.
+  silently on opening or starting a workout, which is the retry path. It drops
+  every label whose audio this device already holds before sending, so a
+  workout run once costs no request at all — the server answers each item with
+  a Cosmos point read, and this fires on open and start, not just on save.
+- `api/local.settings.json` is gitignored (a real `SPEECH_KEY` belongs in it);
+  `api/local.settings.example.json` is the committed copy.
 
 ### How the pieces line up
 
@@ -214,4 +216,21 @@ Change them together.
 - No new API dependency: Cosmos and `fetch` cover it.
 - Local dev: `SPEECH_KEY` in `local.settings.json`. Without a key the endpoint
   reports every clip `failed`, so the client exercises its Web Speech fallback
-  — which is also the offline path, so it needs the exercise.
+  — which is also the offline path, so it needs the exercise. Read a key with
+  `az cognitiveservices account keys list --name mwse-speech --resource-group
+  rg-common --query key1 -o tsv`.
+- That file went from tracked to gitignored in this feature, so checking out
+  any commit before `7f8e63b` overwrites your local copy with the old tracked
+  one — and coming back deletes it. Re-copy the example if it vanishes.
+- Cache Storage is a cache, not durable storage: it shares the origin's quota
+  and can be evicted wholesale (Safari most aggressively). A device losing its
+  clips and re-fetching them is correct, not waste, and is one more reason the
+  Web Speech fallback stays.
+- Two small inefficiencies, neither worth fixing until they show up in
+  production: a `failed` clip is re-asked on every page load, because
+  `ensured` is memory-only and there are no bytes for the have-check to find
+  (locally, with no `SPEECH_KEY`, that means one POST per load); and nothing
+  ever prunes Cache Storage, so a renamed label leaves ~10 KB behind forever.
+- Bumping the `crossfitclock.clips.v1` cache name invalidates every stored
+  clip at once — the escape hatch if the voice or a style changes and all the
+  existing keys go stale.
