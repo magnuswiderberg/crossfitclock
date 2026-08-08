@@ -15,6 +15,12 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
+      // The announcement clips must be precached, not just cacheable: the
+      // fixed vocabulary is the whole reason a preset can run offline without
+      // touching /api/speech. Workbox's default pattern list has no mp3.
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,mp3}'],
+      },
       manifest: {
         name: 'CrossFit Clock',
         short_name: 'CFClock',
