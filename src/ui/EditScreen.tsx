@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type FocusEvent } from 'react'
 import { uid, type Workout } from '../model/types'
 import { compile, formatTime, totalDuration } from '../model/compile'
 
@@ -6,6 +6,19 @@ interface Props {
   workout: Workout
   onSave: (w: Workout) => void
   onCancel: () => void
+}
+
+/**
+ * Labels the app filled in for the user — `emptyWorkout`'s name and first
+ * block/set, and the `Block N` / `Set N` the buttons below add. They are
+ * placeholders in everything but name, so focusing one selects it for
+ * overtyping; text the user actually chose is left alone, where the caret
+ * belongs wherever they tapped so a typo can be fixed without retyping.
+ */
+const GENERATED_LABEL = /^(New workout|Main|Block \d+|Set \d+)$/
+
+function selectIfGenerated(e: FocusEvent<HTMLInputElement>) {
+  if (GENERATED_LABEL.test(e.currentTarget.value)) e.currentTarget.select()
 }
 
 interface NumProps {
@@ -16,16 +29,35 @@ interface NumProps {
 }
 
 function NumField({ label, value, min = 0, onChange }: NumProps) {
+  // While the field is focused it holds raw text, so it can be emptied and
+  // retyped ("10" → "" → "7"). Feeding the number straight back would snap
+  // the field to `min` the moment it went empty, forcing a select-all before
+  // every edit — the thing that made this painful on a phone. Focus also
+  // selects what's there, so overtyping works without clearing first.
+  const [text, setText] = useState<string | null>(null)
   return (
     <div className="edit-field num">
       <label>{label}</label>
       <input
         type="number"
+        inputMode="numeric"
         min={min}
-        value={value}
+        value={text ?? String(value)}
+        onFocus={(e) => {
+          setText(String(value))
+          e.currentTarget.select()
+        }}
         onChange={(e) => {
+          setText(e.target.value)
           const n = parseInt(e.target.value, 10)
+          // An empty (or below-min) field commits nothing — the draft keeps
+          // the old value until blur decides what the field finally says.
+          if (!Number.isNaN(n) && n >= min) onChange(n)
+        }}
+        onBlur={() => {
+          const n = parseInt(text ?? '', 10)
           onChange(Number.isNaN(n) ? min : Math.max(min, n))
+          setText(null)
         }}
       />
     </div>
@@ -82,6 +114,7 @@ export function EditScreen({ workout, onSave, onCancel }: Props) {
         <label>Workout name</label>
         <input
           value={draft.name}
+          onFocus={selectIfGenerated}
           onChange={(e) => update((w) => (w.name = e.target.value))}
           placeholder="e.g. Classic Tabata"
         />
@@ -106,6 +139,7 @@ export function EditScreen({ workout, onSave, onCancel }: Props) {
               <label>Block</label>
               <input
                 value={block.label}
+                onFocus={selectIfGenerated}
                 onChange={(e) => update((w) => (w.blocks[bi].label = e.target.value))}
                 placeholder="e.g. Warm-up, Main, Stretch"
               />
@@ -125,6 +159,7 @@ export function EditScreen({ workout, onSave, onCancel }: Props) {
                   <label>Set</label>
                   <input
                     value={set.label}
+                    onFocus={selectIfGenerated}
                     onChange={(e) => update((w) => (w.blocks[bi].sets[si].label = e.target.value))}
                     placeholder="e.g. 20 / 10"
                   />
