@@ -129,6 +129,14 @@ export function beepCountdown(delay = 0): void {
   tone(880, 0.12, delay)
 }
 
+/**
+ * Same tick a third lower, for the countdown into a rest: the ear reads the
+ * pitch before the beep lands, so you know whether to brace or to stop.
+ */
+export function beepCountdownRest(delay = 0): void {
+  tone(660, 0.12, delay)
+}
+
 /** Higher, longer beep: work starts now. */
 export function beepGo(delay = 0): void {
   tone(1320, 0.3, delay, 1)

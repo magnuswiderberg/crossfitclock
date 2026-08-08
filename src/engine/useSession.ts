@@ -4,6 +4,7 @@ import { COUNTDOWN_SECONDS } from '../model/types'
 import {
   audioRunning,
   beepCountdown,
+  beepCountdownRest,
   beepFinish,
   beepGo,
   beepRest,
@@ -144,16 +145,16 @@ export function useSession(
       for (let i = index; i < segments.length; i++) {
         if (i > index) boundary += segments[i].duration
         const next = segments[i + 1]
-        if (!next) {
-          beepFinish(boundary)
-        } else if (next.type === 'work') {
-          for (let s = COUNTDOWN_SECONDS; s >= 1; s--) {
-            if (boundary - s >= 0) beepCountdown(boundary - s)
-          }
-          beepGo(boundary)
-        } else {
-          beepRest(boundary)
+        // Every boundary gets the same lead-in ticks, high before an effort
+        // (work, and the finish that ends the last one) and a third lower
+        // before a rest — so the pitch says which one is coming.
+        const tick = !next || next.type === 'work' ? beepCountdown : beepCountdownRest
+        for (let s = COUNTDOWN_SECONDS; s >= 1; s--) {
+          if (boundary - s >= 0) tick(boundary - s)
         }
+        if (!next) beepFinish(boundary)
+        else if (next.type === 'work') beepGo(boundary)
+        else beepRest(boundary)
       }
     },
     [segments],
