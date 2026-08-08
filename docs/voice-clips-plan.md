@@ -75,7 +75,7 @@ Client: GET /api/speech/<key> → decodeAudioData → cache (memory + Cache Stor
     invocation per device per clip. If that ever stops being negligible, the
     escape hatch is a Blob Storage container with immutable public URLs;
     the client only knows the key, so nothing else changes.
-- **Keys**: `sha256(voiceId + '|' + normalized text)`, normalized by trim,
+- **Keys**: `sha256(voice + '|' + style + '|' + normalized text)`, normalized by trim,
   whitespace collapse and lowercase — so "Burpees", "burpees " and "BURPEES"
   are one clip. Content addressing makes generation idempotent and shares
   every clip across users, which is the point: the text is what matters.
@@ -86,11 +86,12 @@ Client: GET /api/speech/<key> → decodeAudioData → cache (memory + Cache Stor
 account), idempotent, safe to retry.
 
 ```jsonc
-// POST /api/speech — request
-{ "texts": ["Work", "Rest", "Burpees", "Wall balls"] }
-// response: one entry per text, "pending" = rate-limited, ask again later
-{ "clips": [ { "text": "Work", "key": "ab12…", "status": "ready" },
-             { "text": "Burpees", "status": "pending" } ] }
+// POST /api/speech — request. `kind` picks the style: work → excited,
+// rest → shouting. Only custom labels come here; Work/Rest are bundled.
+{ "items": [ { "text": "Burpees", "kind": "work" } ] }
+// response: one entry per item, "pending" = rate-limited, ask again later
+{ "clips": [ { "text": "Burpees", "kind": "work", "key": "ab12…",
+               "status": "ready" } ] }
 ```
 
 `GET /api/speech/<key>` returns the MP3 with a long immutable `Cache-Control`.
@@ -114,14 +115,18 @@ characters per text, ≤ 20 texts per request, printable characters only.
 
 ## Generation trigger
 
-Generation runs on **Save in the editor**, on **import of a shared workout**,
-and on first load for presets (a no-op once pre-warmed). It never blocks:
+Generation runs on **Save in the editor** and on **import of a shared
+workout**, for custom labels only — presets need nothing. It never blocks:
 Save writes to localStorage and returns immediately, with a non-modal progress
 line ("Preparing audio 2/5"). Failures are silent and retried the next time
 the workout is opened or run.
 
-Not opt-in, and not conditioned on the announcements toggle — see the
-reasoning in CLAUDE.md's decisions log.
+Not opt-in, and not conditioned on the announcements toggle. An editor
+checkbox would be a choice with no downside to weigh; clips are shared and
+content-addressed, so a label someone already spoke costs nothing; and gating
+on the toggle breaks the two cases that matter most — someone turning
+announcements on mid-session, and someone importing a workout by code with
+them already on. Both need the clips to exist already.
 
 ## Privacy note
 
@@ -149,6 +154,44 @@ text already. Nothing ties a clip to an account.
     generation never blocks a save.
   - F0 is intended for development and free-tier use. Moving to S0 is a sku
     change on that one shared account, with no code impact here.
+
+## Status
+
+Done:
+
+- `src/audio/` clips + `scripts/build-audio.ps1`, mp3 added to the service
+  worker's precache globs.
+- `POST /api/speech` + `GET /api/speech/<key>` and `ClipDoc` (typechecked,
+  never yet run against Cosmos or deployed).
+
+Next, in order:
+
+1. **Bicep**: `existing` reference to `mwse-speech` in `rg-common`, feeding
+   `SPEECH_KEY` / `SPEECH_REGION` into the SWA app settings beside the Cosmos
+   ones. Until this lands, a deployed `/api/speech` reports every clip failed.
+2. **Client**: `playBuffer(buffer, delay)` in `audio.ts`; rework
+   `src/engine/speech.ts` from a Web Speech caller into a clip player that
+   pre-schedules announcements on the audio clock alongside the beeps. Nothing
+   imports `src/audio/` yet, so the clips do not even reach `dist` until this
+   step — verify they appear in the precache manifest afterwards.
+3. **Generation trigger** for custom labels, with the progress line.
+
+Then test on a phone with a Bluetooth speaker — that is the bug this whole
+feature exists to fix, and nothing short of that hardware proves it.
+
+## Notes for later
+
+- Of the multilingual voices auditioned (Andrew, Davis, Ava, Brian), **only
+  Brian handled Swedish acceptably**. English was chosen for now, so a Swedish
+  label will be read with an English accent — and the Web Speech fallback will
+  not rescue it, since that only fires when a clip is *missing*. If Swedish
+  labels become common, Brian or the native `sv-SE` voices (Sofie, Mattias,
+  Hillevi) are the way out.
+- The `DragonHD*`, `MAI-Voice-*` and `*HD` voice families were deliberately
+  avoided: they price above standard neural on S0, and whether they fall
+  inside the F0 allowance was never verified.
+- Fonts are not in the service worker's precache globs (pre-existing, unrelated
+  to this feature), so a cold offline launch renders in fallback type.
 - No new API dependency: Cosmos and `fetch` cover it.
 - Local dev: `SPEECH_KEY` in `local.settings.json`. Without a key the endpoint
   reports every clip `failed`, so the client exercises its Web Speech fallback
