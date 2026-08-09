@@ -178,6 +178,18 @@ hear the beeps on iPhone", "how long is an EMOM") are winnable in a way that
 to rank, and one thin near-duplicate page per share code is exactly what a
 crawler should not be fed.
 
+## The easter egg
+
+`7K4M` — the example code printed on the landing page and carried in every
+finish-screen QR — resolves to a real workout, seeded by
+`api/scripts/seed-share.mjs` from `infra/deploy.ps1` after each deploy.
+Idempotent, and it preserves `createdAt` across re-runs.
+
+Its `owner` is `__seed__`, which is **deliberately unclaimable**: `owner` is
+what gates listing and deleting a share, and `HANDLE_RE`
+(`/^[a-z0-9][a-z0-9-]{2,19}$/`) rejects underscores — so nobody can claim that
+handle and revoke the egg. Seeding failure is a warning, never a failed deploy.
+
 ## Next
 
 - **A better domain.** It currently lives at

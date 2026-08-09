@@ -7,6 +7,10 @@
 param(
   [string]$ResourceGroup = 'rg-static-sites',
   [string]$SwaName = 'swa-crossfitclock',
+  # Defaults match main.bicep's cosmosAccountName / cosmosResourceGroup; only
+  # used to seed the easter-egg share code after the deploy.
+  [string]$CosmosAccountName = 'mwse-cosmos',
+  [string]$CosmosResourceGroup = 'rg-common',
   [string]$TenantId,
   [string]$SubscriptionId
 )
@@ -97,6 +101,27 @@ try {
 }
 finally {
   Pop-Location
+}
+
+Write-Host "==> Seeding the easter-egg share code" -ForegroundColor Cyan
+# The landing page prints 7K4M as its example code, so it resolves to a real
+# workout. Never fatal: a missing easter egg is not a broken deploy.
+try {
+  $cosmosEndpoint = az cosmosdb show --name $CosmosAccountName --resource-group $CosmosResourceGroup --query 'documentEndpoint' --output tsv
+  $cosmosKey = az cosmosdb keys list --name $CosmosAccountName --resource-group $CosmosResourceGroup --query 'primaryMasterKey' --output tsv
+  if ($LASTEXITCODE -ne 0 -or -not $cosmosEndpoint -or -not $cosmosKey) { throw 'could not read Cosmos credentials' }
+
+  $env:COSMOS_ENDPOINT = $cosmosEndpoint
+  $env:COSMOS_KEY = $cosmosKey
+  node (Join-Path $root 'api/scripts/seed-share.mjs')
+  if ($LASTEXITCODE -ne 0) { throw 'seed script failed' }
+}
+catch {
+  Write-Host "    skipped: $_" -ForegroundColor Yellow
+}
+finally {
+  if (Test-Path Env:\COSMOS_ENDPOINT) { Remove-Item Env:\COSMOS_ENDPOINT }
+  if (Test-Path Env:\COSMOS_KEY) { Remove-Item Env:\COSMOS_KEY }
 }
 
 $hostname = az staticwebapp show --name $SwaName --resource-group $ResourceGroup --query 'defaultHostname' --output tsv

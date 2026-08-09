@@ -120,6 +120,12 @@ https://claude.ai/code/artifact/f9493707-f78e-4004-8377-cba3b34e32bb
   search terms carried by the title, lede and the formats section instead.
   Rationale, and why native app stores were rejected:
   `docs/distribution-plan.md`.
+- Share code **7K4M is a real, seeded share** (the example printed on the
+  landing page and carried in the finish-screen QRs), written by
+  `api/scripts/seed-share.mjs` from `deploy.ps1`. Its `owner` is `__seed__`,
+  unclaimable on purpose — `owner` gates listing and deleting a share, and
+  `HANDLE_RE` rejects underscores, so nobody can claim the handle and revoke
+  it.
 - The share code appears **on the run screen** (corner, quiet) and **on the
   finish screen** (full size) — the acquisition loop is a class taking the
   workout home. `runShareCode` shows the owner's `shared` code or a
