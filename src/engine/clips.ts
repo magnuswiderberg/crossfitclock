@@ -19,16 +19,24 @@ import workUrl from '../audio/work.mp3'
 import { compile, type Segment } from '../model/compile'
 import type { Workout } from '../model/types'
 import { decodeClip } from './audio'
+import { timeCallsFor, WORDS } from './timecalls'
 
-/** Work labels are announced with energy; a rest is yelled, as relief. */
-export type ClipKind = 'work' | 'rest'
+/**
+ * Work labels are announced with energy; a rest is yelled, as relief. A time
+ * call is yelled too — it is a number shouted across a gym.
+ */
+export type ClipKind = 'work' | 'rest' | 'call'
 
 export interface ClipItem {
   text: string
   kind: ClipKind
 }
 
-const STYLES: Record<ClipKind, string> = { work: 'excited', rest: 'shouting' }
+const STYLES: Record<ClipKind, string> = {
+  work: 'excited',
+  rest: 'shouting',
+  call: 'shouting',
+}
 const VOICE = 'en-US-AriaNeural'
 
 /** Survives page loads; the bundled clips come from the SW precache instead. */
@@ -39,6 +47,8 @@ const BUNDLED: Record<string, string> = {
   'rest|rest': restUrl,
   'work|get ready': getReadyUrl,
   'work|done': doneUrl,
+  // Every time-call word ships too, which is why calls never touch /api/speech.
+  ...Object.fromEntries(Object.entries(WORDS).map(([text, url]) => [`call|${text}`, url])),
 }
 
 /** Decoded clips for this page load, and the misses, so a 404 isn't refetched. */
@@ -174,6 +184,27 @@ export function announcementsIn(segments: Segment[]): ClipItem[] {
     items.set(cacheId(item), item)
   }
   if (items.size > 0) items.set(cacheId(FINISH_ANNOUNCEMENT), FINISH_ANNOUNCEMENT)
+  return [...items.values()]
+}
+
+/** One time call, ready to schedule: what to play, and when after the start. */
+export interface ScheduledCall {
+  item: ClipItem
+  /** Seconds after the segment starts. */
+  at: number
+}
+
+/** The time calls a segment makes, in order. Empty unless it is work. */
+export function callsFor(segment: Segment): ScheduledCall[] {
+  return timeCallsFor(segment).map(({ text, at }) => ({ item: { text, kind: 'call' }, at }))
+}
+
+/** Every distinct word the time calls in these segments will speak. */
+export function callVocabularyIn(segments: Segment[]): ClipItem[] {
+  const items = new Map<string, ClipItem>()
+  for (const segment of segments) {
+    for (const { item } of callsFor(segment)) items.set(cacheId(item), item)
+  }
   return [...items.values()]
 }
 

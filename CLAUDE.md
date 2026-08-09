@@ -91,6 +91,25 @@ https://claude.ai/code/artifact/f9493707-f78e-4004-8377-cba3b34e32bb
   so a workout run once makes no request on later visits. **Deployed and
   confirmed on a phone with a Bluetooth speaker** — full plan, design
   rationale and known rough edges: `docs/voice-clips-plan.md`.
+- **Time calls** (decided 2026-08-09): an opt-in sound option
+  (`crossfitclock.timecalls.v1`), a **peer** of the voice announcements rather
+  than a sub-option — either can be on alone, because numbers without the phase
+  words is a real combination for a group working off one clock. On **work
+  segments only** — a rest says enough with its pitch-coded ticks. Two ladders, and
+  their vocabularies are deliberately **disjoint** so a spoken number is never
+  ambiguous: count-**up** milestones ("thirty", "one minute", "one thirty" …)
+  always mean time served, and the "ten"/"five" run-in always means time left.
+  The driving case is a group on one screen — ten people sharing a 3-minute
+  plank, each with their own goal, none of them able to look. (Putting elapsed
+  time on the screen was considered and rejected for that reason: it serves
+  only the person holding the phone.) The count-up steps every 30 s to five
+  minutes and every minute to ten, and stops 15 s before the end, which is
+  what makes a 35 s interval get only the countdown while a 45 s one keeps its
+  "thirty". No length floor: a guard 1.5 s after the segment start is what
+  keeps short intervals sane. Every word is a bundled clip (no backend, works
+  offline), and calls have **no Web Speech fallback** — a late number misleads
+  someone deciding when to drop out. Policy lives in `src/engine/timecalls.ts`;
+  the word list is mirrored in `scripts/build-audio.ps1`.
 - The in-flight session persists to `crossfitclock.session.v1` (workout
   snapshot + wall-clock anchor) and is restored on load, so a reload or PWA
   restart drops back into the running clock. Cleared on finish/exit.

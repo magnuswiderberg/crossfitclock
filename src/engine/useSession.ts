@@ -11,8 +11,20 @@ import {
   cancelScheduledSounds,
   initAudio,
 } from './audio'
-import { announcementFor, announcementsIn, FINISH_ANNOUNCEMENT } from './clips'
-import { announce, cancelAnnouncements, prepareAnnouncements, primeSpeech } from './speech'
+import {
+  announcementFor,
+  announcementsIn,
+  callsFor,
+  callVocabularyIn,
+  FINISH_ANNOUNCEMENT,
+} from './clips'
+import {
+  announce,
+  cancelAnnouncements,
+  prepareAnnouncements,
+  primeSpeech,
+  timeCallsEnabled,
+} from './speech'
 
 export type SessionStatus = 'running' | 'paused' | 'done'
 
@@ -164,10 +176,20 @@ export function useSession(
         announce(announcementFor(current))
       }
 
+      const callsOn = clipsReadyRef.current && timeCallsEnabled()
       let boundary = remaining
       for (let i = index; i < segments.length; i++) {
         if (i > index) boundary += segments[i].duration
         const next = segments[i + 1]
+        // Time calls are placed from the segment's start, which for the
+        // segment we are already in is behind us — so the same negative-delay
+        // skip the countdown ticks use drops the ones that have passed.
+        if (callsOn) {
+          const start = boundary - segments[i].duration
+          for (const { item, at } of callsFor(segments[i])) {
+            if (start + at >= 0) announce(item, start + at)
+          }
+        }
         // Every boundary gets the same lead-in ticks, high before an effort
         // (work, and the finish that ends the last one) and a third lower
         // before a rest — so the pitch says which one is coming.
@@ -254,7 +276,8 @@ export function useSession(
     // Clips can only be decoded once there is a context, so the announcements
     // join the schedule on the second pass, a moment after the beeps.
     void initAudio()
-      .then(() => prepareAnnouncements(announcementsIn(segments)))
+      // prepareAnnouncements drops whatever is switched off, so both lists go.
+      .then(() => prepareAnnouncements([...announcementsIn(segments), ...callVocabularyIn(segments)]))
       .then(() => {
         clipsReadyRef.current = true
         rescheduleSounds()
@@ -361,24 +384,28 @@ export function useSession(
         const r = ref.current
         if (r.status !== 'running') return
         const elapsed = (Date.now() - r.startMs) / 1000
-        const lead = COUNTDOWN_SECONDS + 1
-        // First segment-end boundary whose lead-in is still ahead of now.
-        // Landing at (boundary - lead) leaves the pre-scheduled countdown and
-        // announcement beeps to play out naturally; segments shorter than the
-        // lead are entered at their start instead.
+        // Where to land for each sound the session still makes: a little ahead
+        // of it, so the pre-scheduled audio plays out naturally instead of
+        // being jumped over. A segment-end needs the whole lead-in (countdown
+        // ticks, boundary beep, announcement); a time call is a single clip and
+        // needs only a moment. Segments shorter than their lead are entered at
+        // their start instead.
+        const callsOn = timeCallsEnabled()
+        const targets: number[] = []
         for (let i = 0; i < segments.length; i++) {
-          const target = Math.max(
-            totals.starts[i],
-            totals.starts[i] + segments[i].duration - lead,
-          )
-          if (target <= elapsed + 0.05) continue
-          r.startMs -= (target - elapsed) * 1000
-          persistRef.current?.({ startedAt: r.startMs, pausedAt: null })
-          rescheduleSounds()
-          cancelAnimationFrame(r.raf)
-          r.raf = requestAnimationFrame(tick)
-          return
+          const start = totals.starts[i]
+          const land = (moment: number, lead: number) =>
+            targets.push(Math.max(start, moment - lead))
+          if (callsOn) for (const { at } of callsFor(segments[i])) land(start + at, 1)
+          land(start + segments[i].duration, COUNTDOWN_SECONDS + 1)
         }
+        const target = targets.sort((a, b) => a - b).find((t) => t > elapsed + 0.05)
+        if (target === undefined) return
+        r.startMs -= (target - elapsed) * 1000
+        persistRef.current?.({ startedAt: r.startMs, pausedAt: null })
+        rescheduleSounds()
+        cancelAnimationFrame(r.raf)
+        r.raf = requestAnimationFrame(tick)
       },
     }),
     [tick, rescheduleSounds, locate, segments, scheduleSounds, totals],

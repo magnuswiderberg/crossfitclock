@@ -14,14 +14,26 @@ import { playBuffer } from './audio'
 import { cachedClip, clipFor, type ClipItem } from './clips'
 
 const KEY = 'crossfitclock.voice.v1'
+const CALLS_KEY = 'crossfitclock.timecalls.v1'
 
-let enabled = (() => {
+function stored(key: string): boolean {
   try {
-    return localStorage.getItem(KEY) === '1'
+    return localStorage.getItem(key) === '1'
   } catch {
     return false
   }
-})()
+}
+
+function remember(key: string, on: boolean): void {
+  try {
+    localStorage.setItem(key, on ? '1' : '0')
+  } catch {
+    // Storage full/blocked — the in-memory flag still works this session.
+  }
+}
+
+let enabled = stored(KEY)
+let calls = stored(CALLS_KEY)
 
 let primed = false
 
@@ -71,12 +83,29 @@ export function voiceEnabled(): boolean {
 
 export function setVoiceEnabled(on: boolean): void {
   enabled = on
-  try {
-    localStorage.setItem(KEY, on ? '1' : '0')
-  } catch {
-    // Storage full/blocked — the in-memory flag still works this session.
-  }
+  remember(KEY, on)
   if (!on) cancelAnnouncements()
+}
+
+/**
+ * Time calls — the "thirty … one minute …" count-up through a long hold and
+ * the "TEN"/"FIVE" run-in at the end. A peer of the announcements rather than
+ * a sub-option of them: for a group working off one clock across the room, the
+ * numbers can be the only thing worth saying.
+ */
+export function timeCallsEnabled(): boolean {
+  return calls
+}
+
+export function setTimeCallsEnabled(on: boolean): void {
+  calls = on
+  remember(CALLS_KEY, on)
+  if (!on) cancelAnnouncements()
+}
+
+/** Whether this particular announcement is switched on. */
+function speaks(item: ClipItem): boolean {
+  return item.kind === 'call' ? calls : enabled
 }
 
 /**
@@ -110,8 +139,7 @@ function speakNow(text: string): void {
  * "no clip", which is the fallback's cue.
  */
 export async function prepareAnnouncements(items: ClipItem[]): Promise<void> {
-  if (!enabled) return
-  await Promise.all(items.map((item) => clipFor(item)))
+  await Promise.all(items.filter(speaks).map((item) => clipFor(item)))
 }
 
 function fallback(text: string, delay: number): void {
@@ -137,7 +165,7 @@ function fallback(text: string, delay: number): void {
  * it lands — unless a cancel intervened first.
  */
 export function announce(item: ClipItem, delay = 0): void {
-  if (!enabled) return
+  if (!speaks(item)) return
   const clip = cachedClip(item)
   if (clip) {
     playBuffer(clip, delay)
@@ -146,22 +174,34 @@ export function announce(item: ClipItem, delay = 0): void {
   const due = performance.now() + delay * 1000
   const gen = generation
   void clipFor(item).then((late) => {
-    if (gen !== generation || !enabled) return
+    if (gen !== generation || !speaks(item)) return
     const left = (due - performance.now()) / 1000
     if (late) playBuffer(late, Math.max(0, left))
-    else fallback(item.text, left)
+    // Time calls never fall back: their whole value is that the number is true
+    // when you hear it, and an utterance fired from a timer can land late or
+    // not at all. A missed "thirty" costs nothing; a late one misleads someone
+    // who is counting on it to decide when to drop out.
+    else if (item.kind !== 'call') fallback(item.text, left)
   })
 }
 
 /**
- * A one-word preview when the toggle is switched on, which doubles as the
+ * A one-word preview when a toggle is switched on, which doubles as the
  * gesture that unlocks audio for the rest of the session.
  */
-export async function sampleVoice(): Promise<void> {
-  const item: ClipItem = { text: 'Work', kind: 'work' }
+async function sample(item: ClipItem, spoken: string): Promise<void> {
   const clip = await clipFor(item)
   if (clip) playBuffer(clip)
-  else speakNow('Voice announcements on')
+  // A time call has no fallback voice, so there is nothing to preview with.
+  else if (item.kind !== 'call') speakNow(spoken)
+}
+
+export function sampleVoice(): Promise<void> {
+  return sample({ text: 'Work', kind: 'work' }, 'Voice announcements on')
+}
+
+export function sampleTimeCall(): Promise<void> {
+  return sample({ text: 'ten', kind: 'call' }, '')
 }
 
 /** Drop pending fallback utterances. Clips are cancelled with the beeps. */

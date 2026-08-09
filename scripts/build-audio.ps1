@@ -26,6 +26,21 @@ $clips = @(
   @{ File = 'done';      Text = 'Done';      Style = 'excited' }
 )
 
+# Time calls: the countdown words, then the count-up ladder (30 s steps to five
+# minutes, then whole minutes to ten). All in the carrying 'shouting' style -
+# these are called across a gym, not into an earbud. The word list and the
+# space-to-dash file naming are mirrored in src/engine/timecalls.ts; a word
+# added here must be added there, or nothing ever plays it.
+$calls = @(
+  'ten', 'five',
+  'thirty', 'one minute', 'one thirty', 'two minutes', 'two thirty',
+  'three minutes', 'three thirty', 'four minutes', 'four thirty', 'five minutes',
+  'six minutes', 'seven minutes', 'eight minutes', 'nine minutes', 'ten minutes'
+)
+foreach ($text in $calls) {
+  $clips += @{ File = ($text -replace ' ', '-'); Text = $text; Style = 'shouting' }
+}
+
 if (-not (Test-Path $outDir)) { New-Item -ItemType Directory $outDir | Out-Null }
 
 Write-Host "==> Reading Speech key for $SpeechAccount" -ForegroundColor Cyan

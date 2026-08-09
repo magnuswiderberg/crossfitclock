@@ -18,8 +18,12 @@ const VOICE = 'en-US-AriaNeural'
  * Chosen by ear. Work labels are shouted with energy; a rest is *yelled* as
  * relief after the effort, which reads warmer than a neutral read of the same
  * word. Both are part of the clip key, so changing them is safe.
+ *
+ * 'call' is the time calls ("thirty", "one minute", "TEN"). Every one of those
+ * ships bundled, so this route never actually synthesizes one — it is here so
+ * the client's style table and this one stay identical, as they must.
  */
-const STYLES = { work: 'excited', rest: 'shouting' } as const
+const STYLES = { work: 'excited', rest: 'shouting', call: 'shouting' } as const
 type Kind = keyof typeof STYLES
 
 /** MP3 at a bitrate that survives a Bluetooth speaker without bloating docs. */

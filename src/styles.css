@@ -279,18 +279,21 @@ input[type='number'] {
   color: var(--muted);
 }
 
+/* The sound options: peer cards, each a checkbox and a line saying what it
+   does. Sized alike so the boxes run down one left edge. */
+.voice-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .voice-toggle {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-start;
   gap: 12px;
   background: var(--card);
   border-radius: 12px;
   padding: 14px 16px;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
   cursor: pointer;
   user-select: none;
 }
@@ -298,15 +301,41 @@ input[type='number'] {
 .voice-toggle input {
   width: 20px;
   height: 20px;
+  /* Nudged onto the title's optical center rather than its line box. */
+  margin: 1px 0 0;
+  flex: none;
   accent-color: var(--rest);
+}
+
+.voice-toggle-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.voice-toggle-name {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.voice-toggle-hint {
+  font-size: 12px;
+  line-height: 1.45;
+  font-weight: 400;
+  color: var(--muted);
 }
 
 .voice-toggle:hover {
   background: var(--card-hi);
 }
 
-.overlay .voice-toggle {
+.overlay .voice-toggles {
   width: 220px;
+}
+
+.overlay .voice-toggle {
   box-sizing: border-box;
   background: var(--card-hi);
 }
@@ -575,8 +604,12 @@ input[type='number'] {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  /* 'safe' keeps centering from pushing the top out of reach on a short
+     viewport — Resume must stay tappable however little room there is. */
+  justify-content: safe center;
   gap: 14px;
+  padding: 20px 0;
+  overflow-y: auto;
   z-index: 10;
 }
 
