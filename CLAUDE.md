@@ -72,6 +72,32 @@ https://claude.ai/code/artifact/f9493707-f78e-4004-8377-cba3b34e32bb
   Re-sharing a workout keeps its code and refreshes the snapshot. Received
   workouts are rebuilt field-by-field with fresh ids
   (`parseSharedWorkout` in `src/model/share.ts`) — never trusted as-is.
+- A share is a **snapshot, not a live link** (made explicit 2026-08-09):
+  editing a shared workout changes nothing until it is re-shared, and pushing
+  a new snapshot reaches nobody until each recipient pulls it. Both sides
+  therefore store a `ShareLink { code, fingerprint }` on the workout —
+  `shared` for the owner, `origin` for a recipient — where the fingerprint is
+  a content signature (`shareFingerprint`, ids and local-only fields
+  excluded). Comparing the current content against the stored fingerprint is
+  what lets the detail screen say "edited since" offline, with no clock to
+  trust and no request. Fingerprints are only ever compared **within** one
+  role, so the fallbacks `parseSharedWorkout` applies don't have to match the
+  sharer's. The owner's push path is just the Share modal again (its button
+  reads "Update share" when there's drift); the recipient's pull is "Update
+  from share", which fetches, reports if nothing changed, and otherwise
+  confirms before replacing — keeping the local id, so the workout stays the
+  same one to sync and to match on the next pull. Re-entering an
+  already-added code on the Import screen updates that copy instead of adding
+  a duplicate (`findAddedCopy`), and entering **your own** code is refused as
+  nothing to import (`findOwnShare`, checked first) — matching only on
+  `origin` is what silently produced two workouts under one code. Writing your
+  own snapshot back over the original would revert edits made since sharing,
+  so the screen points at the workout instead of offering an update; a device
+  that doesn't have the workout has no link to match, so the code still
+  imports there. Copy strips both links: a duplicate is its
+  own workout. Revoking a code on the Sync screen clears the owner's
+  `shared`. Workouts shared before this existed carry no link and show no
+  status until shared once more, which restores the same code.
 - Voice announcements moved from the Web Speech API to **audio clips played
   through the AudioContext** (decided and shipped 2026-08-08): on iOS, speech
   is rendered on the system speech session, so with a Bluetooth speaker

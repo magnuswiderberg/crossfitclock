@@ -94,6 +94,10 @@ export function duplicateWorkout(workout: Workout): Workout {
   copy.id = uid()
   copy.name = `${workout.name} (copy)`
   delete copy.preset
+  // A copy is its own workout from here on: it gets a fresh code if shared,
+  // and it must not compete with the original for "the copy of code XXXX".
+  delete copy.shared
+  delete copy.origin
   for (const block of copy.blocks) {
     block.id = uid()
     for (const set of block.sets) {

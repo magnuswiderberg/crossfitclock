@@ -7,7 +7,7 @@ import {
   loadSyncState,
   syncNow,
 } from '../model/sync'
-import { deleteShare, listShares, type ShareInfo } from '../model/share'
+import { deleteShare, forgetShareLink, listShares, type ShareInfo } from '../model/share'
 
 interface Props {
   workouts: Workout[]
@@ -46,6 +46,15 @@ export function SyncScreen({ workouts, onWorkoutsChange, onBack }: Props) {
     try {
       await deleteShare(share.code)
       setShares((list) => list?.filter((s) => s.code !== share.code) ?? null)
+      // The workout must stop claiming a code that no longer resolves; the
+      // stamp carries the removal to this account's other devices.
+      onWorkoutsChange(
+        workouts.map((w) =>
+          w.shared?.code === share.code
+            ? { ...forgetShareLink(w), updatedAt: Date.now() }
+            : w,
+        ),
+      )
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not delete the share.')
     }

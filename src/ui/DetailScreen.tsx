@@ -1,7 +1,9 @@
 import type { Workout } from '../model/types'
 import { formatTime, totalDuration } from '../model/compile'
+import { hasUnsharedEdits } from '../model/share'
 import { initAudio } from '../engine/audio'
 import { primeSpeech } from '../engine/speech'
+import { ShareStatus } from './ShareStatus'
 import { VoiceToggle } from './VoiceToggle'
 import { WorkoutOutline } from './WorkoutOutline'
 
@@ -11,12 +13,22 @@ interface Props {
   onEdit: () => void
   onCopy: () => void
   onShare: () => void
+  onUpdateFromOrigin: (updated: Workout) => void
   onDelete: () => void
   onBack: () => void
 }
 
 /** Read-only view of a workout, so presets can be inspected before starting or copying. */
-export function DetailScreen({ workout, onStart, onEdit, onCopy, onShare, onDelete, onBack }: Props) {
+export function DetailScreen({
+  workout,
+  onStart,
+  onEdit,
+  onCopy,
+  onShare,
+  onUpdateFromOrigin,
+  onDelete,
+  onBack,
+}: Props) {
   return (
     <div className="screen">
       <div className="screen-head">
@@ -58,7 +70,7 @@ export function DetailScreen({ workout, onStart, onEdit, onCopy, onShare, onDele
               Edit
             </button>
             <button className="btn" onClick={onShare}>
-              Share
+              {hasUnsharedEdits(workout) ? 'Update share' : 'Share'}
             </button>
             <span className="grow" />
             <button
@@ -72,6 +84,8 @@ export function DetailScreen({ workout, onStart, onEdit, onCopy, onShare, onDele
           </>
         )}
       </div>
+
+      <ShareStatus workout={workout} onUpdateFromOrigin={onUpdateFromOrigin} />
     </div>
   )
 }

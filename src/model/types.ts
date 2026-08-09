@@ -27,6 +27,17 @@ export interface Block {
   sets: WorkoutSet[]
 }
 
+/**
+ * A workout's tie to a share code. `fingerprint` is the content signature
+ * (`shareFingerprint` in `model/share.ts`) at the moment the snapshot was
+ * pushed or pulled, so drift is detected by comparing content rather than
+ * trusting either side's clock.
+ */
+export interface ShareLink {
+  code: string
+  fingerprint: string
+}
+
 /** The saved, named definition. Running one creates a session. */
 export interface Workout {
   id: string
@@ -43,6 +54,10 @@ export interface Workout {
   preset?: boolean
   /** Epoch ms of the last save; drives last-write-wins sync. Never on presets. */
   updatedAt?: number
+  /** The share code this workout is published under, set when it was shared. */
+  shared?: ShareLink
+  /** The share code this workout was added from, so it can be updated later. */
+  origin?: ShareLink
 }
 
 /** Countdown before the very first interval of a session. */

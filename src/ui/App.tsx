@@ -10,6 +10,7 @@ import {
   clearActiveSession,
 } from '../model/storage'
 import { isConnected, recordDeletion, syncNow } from '../model/sync'
+import { findAddedCopy } from '../model/share'
 import { ensureWorkoutClips, type ClipProgress } from '../engine/clips'
 import type { SessionRestore } from '../engine/useSession'
 import { HomeScreen } from './HomeScreen'
@@ -169,8 +170,8 @@ export function App() {
     return () => window.clearTimeout(t)
   }, [workouts])
 
-  // The clip progress line rides above every screen, so a save can return to
-  // the home screen while its audio is still being prepared.
+  // The clip progress line rides above every screen, so a save can move on
+  // while its audio is still being prepared.
   const screen = () => {
     if (view.name === 'run') {
       return (
@@ -193,15 +194,25 @@ export function App() {
               view.isNew ? [...list, stamped] : list.map((x) => (x.id === w.id ? stamped : x)),
             )
             prepareAudio(stamped, true)
-            goHome()
+            // Land on the workout, not the list: what you just saved is what
+            // you want to look over, start, or share. `navigate` reuses the
+            // history entry the editor pushed, so back still means home.
+            navigate({ name: 'detail', workout: stamped })
           }}
-          onCancel={goHome}
+          onCancel={() =>
+            // Back to the workout you were looking at — except for a new one,
+            // which was never saved and so has no page to return to.
+            view.isNew ? goHome() : navigate({ name: 'detail', workout: view.workout })
+          }
         />
       )
     }
 
     if (view.name === 'detail') {
-      const w = view.workout
+      // Read through to the stored workout: sharing and updating from a share
+      // both change it while this screen is open, and the view holds the
+      // snapshot from navigation time.
+      const w = workouts.find((x) => x.id === view.workout.id) ?? view.workout
       return (
         <>
           <DetailScreen
@@ -210,6 +221,11 @@ export function App() {
             onEdit={() => navigate({ name: 'edit', workout: w, isNew: false })}
             onCopy={() => navigate({ name: 'edit', workout: duplicateWorkout(w), isNew: true })}
             onShare={() => setShareTarget(w)}
+            onUpdateFromOrigin={(updated) => {
+              const stamped = { ...updated, updatedAt: Date.now() }
+              setWorkouts((list) => list.map((x) => (x.id === stamped.id ? stamped : x)))
+              prepareAudio(stamped, true)
+            }}
             onDelete={() => {
               recordDeletion(w.id)
               setWorkouts((list) => list.filter((x) => x.id !== w.id))
@@ -220,6 +236,14 @@ export function App() {
           {shareTarget && (
             <ShareModal
               workout={shareTarget}
+              onShared={(link) => {
+                // Stamped so the code travels to this account's other devices.
+                setWorkouts((list) =>
+                  list.map((x) =>
+                    x.id === shareTarget.id ? { ...x, shared: link, updatedAt: Date.now() } : x,
+                  ),
+                )
+              }}
               onClose={() => setShareTarget(null)}
               onOpenSync={() => {
                 setShareTarget(null)
@@ -239,11 +263,19 @@ export function App() {
     if (view.name === 'import') {
       return (
         <ImportScreen
+          workouts={workouts}
           onAdd={(w) => {
             // fetchShare already rebuilt it with fresh ids; stamp it as edited
             // now so the next background sync pushes it to this account.
-            const added = { ...w, updatedAt: Date.now() }
-            setWorkouts((list) => [...list, added])
+            // Re-entering a code that's already been added updates that copy
+            // (keeping its id) instead of leaving two of the same workout.
+            const previous = findAddedCopy(workouts, w)
+            const added = { ...w, id: previous?.id ?? w.id, updatedAt: Date.now() }
+            setWorkouts((list) =>
+              previous
+                ? list.map((x) => (x.id === added.id ? added : x))
+                : [...list, added],
+            )
             prepareAudio(added, true)
             goHome()
           }}

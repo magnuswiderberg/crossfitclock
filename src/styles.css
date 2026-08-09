@@ -814,6 +814,22 @@ input[type='number'] {
   margin-right: -0.18em;
 }
 
+/* Share state under the detail-screen buttons: quiet by default, since it
+   only matters when someone goes looking for it. */
+.share-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.share-status .sync-code {
+  font-size: 17px;
+  color: var(--text);
+}
+
 .share-name {
   flex: 1;
   min-width: 0;
