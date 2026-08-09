@@ -17,6 +17,10 @@ An interval timer PWA for Tabata and CrossFit sessions. The screen is the timer:
 
 ## Pages
 
+Deployed at <https://workout.magnuswiderberg.se> (a placeholder domain — moving
+it means editing `SITE_URL` in [vite.config.ts](vite.config.ts), which is
+substituted into the canonical and Open Graph tags at build time).
+
 The site is three separate pages, not one app with routes:
 
 | URL | What it is |

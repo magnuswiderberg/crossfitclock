@@ -11,6 +11,19 @@
       name="description"
       content="A workout shared from CrossFit Clock. Type its four-character code into the app to add it."
     />
+    <!-- Static on purpose: scrapers don't run JS, so a pasted code link previews
+         as the app rather than naming somebody's workout. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="CrossFit Clock" />
+    <meta property="og:title" content="A shared workout — CrossFit Clock" />
+    <meta
+      property="og:description"
+      content="Someone shared a workout. Open the page for its four-character code, then type that into CrossFit Clock."
+    />
+    <meta property="og:image" content="%SITE_URL%/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="/src/site/site.css" />
   </head>

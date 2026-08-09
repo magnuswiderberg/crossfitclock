@@ -7,6 +7,24 @@ import { VitePWA } from 'vite-plugin-pwa'
 const page = (path: string) => fileURLToPath(new URL(path, import.meta.url))
 
 /**
+ * The public origin, substituted for `%SITE_URL%` in the static pages. Canonical
+ * and Open Graph tags have to be absolute, and scrapers don't run JS, so this is
+ * the one place a domain move needs editing (or `SITE_URL=… npm run build`).
+ * The current host is a placeholder — a better domain is still to be found.
+ */
+const SITE_URL = (process.env.SITE_URL ?? 'https://workout.magnuswiderberg.se').replace(/\/+$/, '')
+
+function siteUrl(): Plugin {
+  return {
+    name: 'crossfitclock:site-url',
+    transformIndexHtml: {
+      order: 'pre',
+      handler: (html) => html.replaceAll('%SITE_URL%', SITE_URL),
+    },
+  }
+}
+
+/**
  * The two rewrites Azure Static Web Apps performs in production (see
  * `public/staticwebapp.config.json`), taught to the dev and preview servers so
  * a URL can't work locally and 404 only once deployed: `/c/<CODE>` is one
@@ -52,6 +70,7 @@ export default defineConfig({
   },
   plugins: [
     react(),
+    siteUrl(),
     serveLikeAzure(),
     VitePWA({
       registerType: 'autoUpdate',
@@ -65,6 +84,8 @@ export default defineConfig({
       // touching /api/speech. Workbox's default pattern list has no mp3.
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,mp3}'],
+        // The social card is for scrapers, never for a phone in a gym.
+        globIgnores: ['**/og-image.png'],
         // Once the worker is installed, the navigation fallback answers *every*
         // navigation from the cache — which would quietly serve the app in place
         // of the landing page from the second visit onwards. Both static pages

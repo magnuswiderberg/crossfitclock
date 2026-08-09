@@ -105,6 +105,12 @@ is cast to a TV or projector in the box.
 never sees marketing. Scope stays `/` so the landing page can carry the install
 prompt.
 
+The social card at `public/og-image.png` is a rendered 1200×630 PNG — most
+scrapers reject SVG. It is excluded from the service worker's precache: it
+exists for link previews, never for a phone in a gym. The `/c/` pages carry the
+same generic card deliberately, so a pasted code link previews as the app
+instead of naming somebody's workout.
+
 ### Why static, not another screen in `App.tsx`
 
 The landing page's whole job is SEO and first impressions: crawlable HTML, no
@@ -156,9 +162,12 @@ recipients need no account. The page is static HTML that reads the code out of
 
 ## Next
 
-- **The landing page has no `og:image`, and no canonical or `og:url`.** All
-  three need the real domain, which isn't recorded anywhere in the repo yet.
-  Add them once it is, along with a PNG social card — most scrapers reject SVG.
+- **A better domain.** It currently lives at
+  `https://workout.magnuswiderberg.se`, which is a placeholder. Moving it is one
+  edit — `SITE_URL` in `vite.config.ts`, or `SITE_URL=… npm run build` — because
+  the canonical and Open Graph tags are substituted into the static pages at
+  build time (`%SITE_URL%`); scrapers don't run JS, so those have to be absolute
+  and can't be filled in from `location`.
 - **Move the install and silent-switch explanations to the landing page.** They
   currently have to interrupt people inside the app (`InstallHint.tsx`,
   `SilentHint.tsx`); the landing page is where that content wants to live.

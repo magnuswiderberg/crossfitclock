@@ -112,7 +112,11 @@ https://claude.ai/code/artifact/f9493707-f78e-4004-8377-cba3b34e32bb
   of the landing page from the *second* visit (hence
   `navigateFallbackDenylist`), and `/c/*` + bare `/app` need rewriting in
   `public/staticwebapp.config.json` and in a Vite middleware so dev, preview
-  and production agree. Rationale, and why native app stores were rejected:
+  and production agree. Canonical/Open Graph tags must be absolute (scrapers
+  don't run JS), so `%SITE_URL%` is substituted at build time from `SITE_URL`
+  in `vite.config.ts` — currently the placeholder host
+  `https://workout.magnuswiderberg.se`, and the one edit a domain move needs.
+  Rationale, and why native app stores were rejected:
   `docs/distribution-plan.md`.
 - The share code appears **on the run screen** (corner, quiet) and **on the
   finish screen** (full size) — the acquisition loop is a class taking the
