@@ -1,0 +1,17 @@
+/* ---------- Signal design tokens ----------
+   Shared by the app (styles.css) and the static site pages (site/site.css), so
+   the landing page can carry the brand without pulling in the whole app CSS. */
+:root {
+  --work: #e23d28;
+  --rest: #0e7c7b;
+  --prep: #e8a33d;
+  --done: #158b45;
+  --base: #0f1012;
+  --card: #1b1c20;
+  --card-hi: #26272c;
+  --text: #f7f4ef;
+  --muted: #9a9da3;
+  --line: #2e3036;
+  --display: 'Anton', 'Arial Narrow', sans-serif;
+  --body: 'Archivo', 'Segoe UI', system-ui, sans-serif;
+}

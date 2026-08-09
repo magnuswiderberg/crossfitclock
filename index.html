@@ -2,13 +2,213 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#0f1012" />
+    <title>CrossFit Clock — interval timer for Tabata and CrossFit</title>
+    <meta
+      name="description"
+      content="A gym timer you can read from across the room. Colour tells you the phase, it calls the time out loud, and it runs offline. Free, no account needed."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="CrossFit Clock — the whole screen is the timer" />
+    <meta
+      property="og:description"
+      content="Interval timer for Tabata and CrossFit. Glanceable from across the box, calls the time out loud, works offline."
+    />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-    <title>CrossFit Clock</title>
+    <link rel="apple-touch-icon" href="/icon.svg" />
+    <script>
+      // Installs made before the app moved to /app have start_url '/' baked into
+      // the home-screen icon — on iOS the URL is captured at install time and no
+      // later manifest change reaches it. Bounce those launches before paint, so
+      // nobody opening the app from their home screen lands on marketing.
+      if (matchMedia('(display-mode: standalone)').matches || navigator.standalone)
+        location.replace('/app/')
+    </script>
+    <link rel="stylesheet" href="/src/site/site.css" />
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <header class="site-nav">
+      <a class="site-mark" href="/">CrossFit Clock</a>
+      <!-- Deliberately not the primary style: the hero's CTA should be the one
+           red thing on first paint. -->
+      <a class="btn" href="/app/">Open the clock</a>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <h1>The whole screen is the timer.</h1>
+          <p class="lede">
+            An interval timer for Tabata, EMOM and CrossFit sessions — built to be read from
+            three metres away, mid-burpee, by ten people at once. Colour announces the phase
+            before you've read anything.
+          </p>
+          <div class="cta-row">
+            <a class="btn btn-primary btn-lg" href="/app/">Start a workout</a>
+            <a class="btn btn-lg" href="#install">Add it to your phone</a>
+          </div>
+          <p class="fine">Free · no account · works with no signal</p>
+        </div>
+
+        <div class="demo-wrap" aria-hidden="true">
+          <div class="demo-screen is-work" id="demo">
+            <div class="demo-fill"></div>
+            <div class="demo-top"><span>Tabata · Rd 3/8</span></div>
+            <div class="demo-label">Work</div>
+            <div class="demo-time">0:06</div>
+            <div class="demo-plates">
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+            <div class="demo-next"><span>Next</span><b>Rest 0:10</b></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="features">
+        <article class="feature" style="--accent: var(--work)">
+          <h2>Colour is the signal</h2>
+          <p>
+            Red is work, teal is rest, amber is get-ready, green is done. A dark fill drains
+            down the screen as the interval runs, and the last two seconds flash in time with
+            the beeps. You can call it from the far end of the gym without reading a number.
+          </p>
+        </article>
+
+        <article class="feature" style="--accent: var(--rest)">
+          <h2>It calls the time out loud</h2>
+          <p>
+            "Work." "Rest." And on long intervals, the time itself — "thirty… one minute… one
+            thirty" on the way up, "ten… five" on the way down. Ten people sharing a three
+            minute plank, each with their own goal, none of them able to look at a screen.
+          </p>
+        </article>
+
+        <article class="feature" style="--accent: var(--prep)">
+          <h2>Beeps go where your music goes</h2>
+          <p>
+            Announcements play through the same audio path as the beeps, so with a Bluetooth
+            speaker connected everything comes out of the speaker — not half of it out of a
+            phone in someone's pocket. Your music keeps playing underneath.
+          </p>
+        </article>
+
+        <article class="feature" style="--accent: var(--done)">
+          <h2>Installs like an app, runs like one</h2>
+          <p>
+            Add it to your home screen and it opens full-screen with no browser chrome. Every
+            preset runs with no network at all, and a session that gets interrupted picks up
+            where the clock actually is — not where it was when the screen went dark.
+          </p>
+        </article>
+      </section>
+
+      <section class="share" id="share">
+        <div class="share-copy">
+          <h2>Pass a workout around with four characters</h2>
+          <p>
+            Share any workout and it gets a four-character code. Anyone types it into their own
+            clock and the whole thing lands on their phone — every block, set and interval. No
+            link to tap, no sign-up on their end, nothing to install first.
+          </p>
+          <p>
+            The code sits on screen while the workout runs and again when it finishes, so a
+            class working off one clock can take the session home without anyone writing
+            anything down.
+          </p>
+        </div>
+        <div class="share-code-card" aria-hidden="true">
+          <span class="share-code-label">Share code</span>
+          <span class="share-code-value">7K4M</span>
+        </div>
+      </section>
+
+      <section class="install" id="install">
+        <h2>Add it to your phone</h2>
+        <div class="install-grid">
+          <div class="install-card">
+            <h3>iPhone / iPad</h3>
+            <ol>
+              <li>Open <a href="/app/">the clock</a> in Safari.</li>
+              <li>Tap the Share button.</li>
+              <li>Choose <strong>Add to Home Screen</strong>.</li>
+            </ol>
+            <p class="fine">
+              One thing worth knowing: iOS mutes web audio while the ringer switch is set to
+              silent. Flip the switch off silent and the beeps come back.
+            </p>
+          </div>
+          <div class="install-card">
+            <h3>Android</h3>
+            <ol>
+              <li>Open <a href="/app/">the clock</a> in Chrome.</li>
+              <li>Open the ⋮ menu.</li>
+              <li>Choose <strong>Install app</strong>.</li>
+            </ol>
+            <p class="fine">
+              Chrome usually offers to install it on its own after the first visit.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="closing">
+        <h2>Pick one, hit start.</h2>
+        <p>Tabata and a few other presets are already in there. Build your own when you want to.</p>
+        <a class="btn btn-primary btn-lg" href="/app/">Open the clock</a>
+      </section>
+    </main>
+
+    <!-- No CTA here on purpose: the hero and the closing section are the two
+         asks, and a third one directly under the second only dilutes them. -->
+    <footer class="site-foot">
+      <span>CrossFit Clock</span>
+    </footer>
+
+    <script>
+      // A live corner of the real thing: the phases and the drain are what the
+      // app actually does, so the hero shows the product rather than describing
+      // it. Real seconds, no acceleration — the calm pace is the point.
+      ;(function () {
+        var el = document.getElementById('demo')
+        if (!el || matchMedia('(prefers-reduced-motion: reduce)').matches) return
+        var phases = [
+          { cls: 'is-work', label: 'Work', secs: 6, next: 'Rest 0:10' },
+          { cls: 'is-rest', label: 'Rest', secs: 10, next: 'Work 0:20' },
+        ]
+        var fill = el.querySelector('.demo-fill')
+        var where = el.querySelector('.demo-top span')
+        var label = el.querySelector('.demo-label')
+        var time = el.querySelector('.demo-time')
+        var next = el.querySelector('.demo-next b')
+        var pips = el.querySelectorAll('.demo-plates i')
+        var i = 0
+        var left = phases[0].secs
+        var round = 3
+
+        function paint() {
+          var p = phases[i]
+          el.className = 'demo-screen ' + p.cls
+          where.textContent = 'Tabata · Rd ' + round + '/8'
+          label.textContent = p.label
+          time.textContent = '0:' + (left < 10 ? '0' : '') + left
+          next.textContent = p.next
+          fill.style.height = (100 * (p.secs - left)) / p.secs + '%'
+          for (var n = 0; n < pips.length; n++)
+            pips[n].className = n < round - 1 ? 'on' : n === round - 1 ? 'now' : ''
+        }
+
+        paint()
+        setInterval(function () {
+          left -= 1
+          if (left < 0) {
+            i = (i + 1) % phases.length
+            if (i === 0) round = (round % 8) + 1
+            left = phases[i].secs
+          }
+          paint()
+        }, 1000)
+      })()
+    </script>
   </body>
 </html>

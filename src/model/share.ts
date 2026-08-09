@@ -65,6 +65,23 @@ export function hasLocalEdits(workout: Workout): boolean {
 }
 
 /**
+ * The code to put on screen while this workout runs, or undefined when there
+ * is nothing honest to show.
+ *
+ * Either role can hand a code on — an owner passes out their own, a recipient
+ * passes on the one they were given — but only while the content still matches
+ * the snapshot behind it. A code that would hand someone a *different* workout
+ * than the one on the screen is worse than no code, so drift hides it rather
+ * than qualifying it: there is no room on a run screen to explain. Re-sharing
+ * (owner) or updating from the share (recipient) brings it back.
+ */
+export function runShareCode(workout: Workout): string | undefined {
+  if (workout.shared && !hasUnsharedEdits(workout)) return workout.shared.code
+  if (workout.origin && !hasLocalEdits(workout)) return workout.origin.code
+  return undefined
+}
+
+/**
  * The workout already added from the same share code, if any. The import
  * screen uses it to offer an update instead of a second copy, and the add
  * itself uses it to know what to replace — one rule, so the two can't disagree.

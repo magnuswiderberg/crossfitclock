@@ -13,7 +13,19 @@ An interval timer PWA for Tabata and CrossFit sessions. The screen is the timer:
 - Edit mode: create, edit, duplicate, and delete workouts; presets are seeded on first launch.
 - Fully offline PWA — workouts live in localStorage, fonts and assets are self-hosted.
 - Optional sync across devices (edit on desktop, run on phone): claim a handle, get a sync code, connect other devices with it — no email or password. Backed by Azure Static Web Apps functions + Cosmos DB; the app works fully offline without it. See [docs/database-sync-plan.md](docs/database-sync-plan.md).
-- Share workouts with a short code: tap **Share** on a workout to get a 4-character code, anyone enters it under **Add from share code** on their home screen to preview and add it — no account needed to receive. Shared codes are listed (and revocable) on the Sync screen.
+- Share workouts with a short code: tap **Share** on a workout to get a 4-character code, anyone enters it under **Add from share code** on their home screen to preview and add it — no account needed to receive. Shared codes are listed (and revocable) on the Sync screen. A shared workout carries its code on the run screen and again, in full size, on the finish screen — a class working off one clock can take the session home without writing anything down.
+
+## Pages
+
+The site is three separate pages, not one app with routes:
+
+| URL | What it is |
+| --- | --- |
+| `/` | Static landing page — plain HTML/CSS, no React, built to be crawlable and to paint instantly |
+| `/c/<CODE>` | One shared workout: what's in it, and the code to type. Deliberately does **not** import — a tapped link opens the system browser, whose storage is separate from the installed app's |
+| `/app` | The PWA itself, and the manifest's `start_url` |
+
+See [docs/distribution-plan.md](docs/distribution-plan.md) for why.
 
 ## Local development
 
@@ -23,6 +35,10 @@ Requires Node 20+.
 npm install
 npm run dev        # start the dev server (URL is printed, usually http://localhost:5173)
 ```
+
+`npm run dev` opens the landing page; the app is at `/app`. The dev and preview
+servers apply the same rewrites Azure Static Web Apps does, so `/c/<CODE>`
+resolves locally too.
 
 Other scripts:
 
@@ -92,12 +108,18 @@ Notes for development:
 ## Project structure
 
 ```
+index.html    # Landing page (/)
+c/index.html  # Shared-workout page (/c/<CODE>)
+app/index.html# The PWA (/app)
 src/
   model/      # Workout types, presets, localStorage, sync + share clients, timeline compiler
   engine/     # Session runner, Web Audio beeps, voice announcement clips, wake lock
   audio/      # The fixed clips: phase words (Work, Rest, …) and time-call numbers
   ui/         # App shell, Home, Edit, Run, and Sync screens
-  styles.css  # Design tokens and all styling
+  site/       # The two static pages' styles and the code-page script — no React
+  tokens.css  # Design tokens, shared by the app and the static pages
+  styles.css  # All app styling
+public/       # Copied verbatim: the icon and the Azure SWA route config
 api/          # Azure Functions API (account claim/login, workout sync, share codes)
 infra/        # Bicep templates and deploy script
 ```

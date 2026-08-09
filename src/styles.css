@@ -1,18 +1,4 @@
-/* ---------- Signal design tokens ---------- */
-:root {
-  --work: #e23d28;
-  --rest: #0e7c7b;
-  --prep: #e8a33d;
-  --done: #158b45;
-  --base: #0f1012;
-  --card: #1b1c20;
-  --card-hi: #26272c;
-  --text: #f7f4ef;
-  --muted: #9a9da3;
-  --line: #2e3036;
-  --display: 'Anton', 'Arial Narrow', sans-serif;
-  --body: 'Archivo', 'Segoe UI', system-ui, sans-serif;
-}
+@import './tokens.css';
 
 * {
   margin: 0;
@@ -346,13 +332,17 @@ input[type='number'] {
   inset: 0;
   background: rgba(15, 16, 18, 0.88);
   display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 24px;
+  /* Centering is `margin: auto` on the card, not `align-items: center`: a card
+     taller than the screen (share + QR on a short phone) would otherwise be
+     clipped at both ends with its buttons out of reach. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
   z-index: 20;
 }
 
 .hint-card {
+  margin: auto;
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 16px;
@@ -470,6 +460,18 @@ input[type='number'] {
 .run-top .where {
   opacity: 0.85;
   text-align: center;
+}
+
+/* The share code, parked in the corner while the workout runs: readable from
+   across the room by anyone who goes looking, invisible to everyone else. */
+.run-code {
+  position: absolute;
+  right: 20px;
+  top: calc(16px + env(safe-area-inset-top));
+  font-family: var(--display);
+  font-size: 18px;
+  letter-spacing: 0.14em;
+  opacity: 0.55;
 }
 
 .run-label {
@@ -660,6 +662,63 @@ input[type='number'] {
   font-variant-numeric: tabular-nums;
 }
 
+/* The finish screen is where a class can take the workout home, so the code
+   gets real size here — the opposite of its corner treatment during the run. */
+.done-share {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 26px;
+  padding: 14px 18px;
+  background: rgba(0, 0, 0, 0.22);
+  border-radius: 16px;
+}
+
+.done-share-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+}
+
+.done-share-label,
+.done-share-hint {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.done-share-hint {
+  letter-spacing: 0.1em;
+  opacity: 0.55;
+}
+
+.done-share-code {
+  font-family: var(--display);
+  font-size: clamp(44px, 13vw, 62px);
+  line-height: 1.12;
+  letter-spacing: 0.18em;
+}
+
+/* White plate and quiet zone: a QR on the green finish screen would not scan. */
+.share-qr {
+  flex: none;
+  align-self: center;
+  display: block;
+  padding: 8px;
+  background: #fff;
+  border-radius: 8px;
+  line-height: 0;
+}
+
+/* The dev-only link around the modules must leave no trace of being one. */
+.share-qr a {
+  display: block;
+  line-height: 0;
+}
+
 /* ---------- edit screen ---------- */
 .edit-field {
   display: flex;
@@ -812,6 +871,11 @@ input[type='number'] {
   padding: 8px 0 2px;
   /* Optical centering: letter-spacing trails the last glyph. */
   margin-right: -0.18em;
+}
+
+.share-qr-note {
+  text-align: center;
+  font-size: 13.5px;
 }
 
 /* Share state under the detail-screen buttons: quiet by default, since it

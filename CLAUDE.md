@@ -98,6 +98,35 @@ https://claude.ai/code/artifact/f9493707-f78e-4004-8377-cba3b34e32bb
   own workout. Revoking a code on the Sync screen clears the owner's
   `shared`. Workouts shared before this existed carry no link and show no
   status until shared once more, which restores the same code.
+- **Three pages, not one app** (decided 2026-08-09): `/` is a static landing
+  page (plain HTML/CSS, no React — its job is to be crawlable and paint
+  instantly), `/c/<CODE>` shows one shared workout, and the PWA lives at
+  `/app`, which is the manifest's `start_url`. Manifest `id` stays `'/'` so
+  existing installs don't read as a different app, and the landing page
+  redirects out of `display-mode: standalone` before paint, because iOS bakes
+  `start_url` into the home-screen icon at install time. `/c/<CODE>`
+  deliberately **does not import** — a tapped link or scanned QR opens the
+  system browser, whose storage is separate from the installed PWA's (the
+  2026-08-02 reasoning) — it displays the code to be typed instead. Two
+  traps: Workbox's navigation fallback silently serves the app shell in place
+  of the landing page from the *second* visit (hence
+  `navigateFallbackDenylist`), and `/c/*` + bare `/app` need rewriting in
+  `public/staticwebapp.config.json` and in a Vite middleware so dev, preview
+  and production agree. Rationale, and why native app stores were rejected:
+  `docs/distribution-plan.md`.
+- The share code appears **on the run screen** (corner, quiet) and **on the
+  finish screen** (full size) — the acquisition loop is a class taking the
+  workout home. `runShareCode` shows the owner's `shared` code or a
+  recipient's `origin` code, but only while the content still matches that
+  snapshot's fingerprint: a code handing someone a different workout than the
+  one on screen is worse than no code, and a run screen has no room to explain
+  drift. The finish screen and the Share modal both draw a **QR** for
+  `/c/<CODE>` (`src/ui/ShareQr.tsx`) from a lazily imported encoder, on a white
+  plate whose padding is the quiet zone — on the green finish screen a bare QR
+  won't scan. In dev only it's wrapped in an unstyled `<a>`, to check the target
+  without a second device. `.hint-overlay` scrolls (and centers its card with
+  `margin: auto`) because the QR pushed the Share modal past a short phone's
+  screen, where it used to clip its own buttons.
 - Voice announcements moved from the Web Speech API to **audio clips played
   through the AudioContext** (decided and shipped 2026-08-08): on iOS, speech
   is rendered on the system speech session, so with a Bluetooth speaker

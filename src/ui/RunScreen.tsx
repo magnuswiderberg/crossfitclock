@@ -4,6 +4,8 @@ import { compile, formatTime, type Segment } from '../model/compile'
 import { saveActiveSession, clearActiveSession } from '../model/storage'
 import { useSession, type SessionRestore } from '../engine/useSession'
 import { useWakeLock } from '../engine/wakeLock'
+import { runShareCode } from '../model/share'
+import { ShareQr } from './ShareQr'
 import { VoiceToggle } from './VoiceToggle'
 
 interface Props {
@@ -32,6 +34,9 @@ function nextUpText(seg: Segment, next: Segment | undefined): string {
 
 export function RunScreen({ workout, restore, onExit, backRef }: Props) {
   const segments = useMemo(() => compile(workout), [workout])
+  // Memoized because this screen re-renders on every tick and the code is
+  // derived from a content fingerprint.
+  const shareCode = useMemo(() => runShareCode(workout), [workout])
   const [snap, controls, audioBlocked] = useSession(segments, {
     restore,
     onPersist: (s) => {
@@ -70,6 +75,20 @@ export function RunScreen({ workout, restore, onExit, backRef }: Props) {
           <p>
             {workout.name} · {formatTime(total)}
           </p>
+          {shareCode && (
+            // The best-attention moment in the app: the workout is over, nobody
+            // is watching the clock any more, and this is when a class can take
+            // the session home. The code leads and the QR follows, because a
+            // code is readable across the room and a QR has to be walked up to.
+            <div className="done-share">
+              <ShareQr url={`${location.origin}/c/${shareCode}`} />
+              <div className="done-share-text">
+                <span className="done-share-label">Take it home</span>
+                <span className="done-share-code">{shareCode}</span>
+                <span className="done-share-hint">Scan, or enter the code</span>
+              </div>
+            </div>
+          )}
         </div>
         <div className="overlay" style={{ position: 'relative', background: 'none', flex: 'none', paddingBottom: 40 }}>
           <button className="btn" onClick={controls.restart}>
@@ -129,6 +148,13 @@ export function RunScreen({ workout, restore, onExit, backRef }: Props) {
           {seg.setLabel}
           {showRounds && ` · Rd ${seg.round}/${seg.roundsTotal}`}
         </span>
+        {shareCode && (
+          // Quiet on purpose: the class is here for the number, and anyone who
+          // wants to take the workout home can find this without being sold it.
+          <span className="run-code" aria-label={`Share code ${shareCode}`}>
+            {shareCode}
+          </span>
+        )}
       </div>
 
       <div className="run-label">{seg.label}</div>

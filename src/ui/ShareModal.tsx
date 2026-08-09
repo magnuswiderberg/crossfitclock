@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { ShareLink, Workout } from '../model/types'
 import { isConnected } from '../model/sync'
 import { createShare } from '../model/share'
+import { ShareQr } from './ShareQr'
 
 interface Props {
   workout: Workout
@@ -93,6 +94,15 @@ export function ShareModal({ workout, onShared, onClose, onOpenSync }: Props) {
         ) : (
           <>
             <div className="share-code-display">{code ?? '····'}</div>
+            {code && (
+              <>
+                <ShareQr url={`${location.origin}/c/${code}`} size={128} />
+                <p className="sync-note share-qr-note">
+                  Or let them scan it — the quicker path for someone who hasn’t got the app yet.
+                  It opens a page showing this same code.
+                </p>
+              </>
+            )}
             {refreshed ? (
               <p>
                 The code keeps working and now points at this version. Anyone who already added
