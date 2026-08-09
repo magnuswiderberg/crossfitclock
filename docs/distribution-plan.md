@@ -98,6 +98,7 @@ is cast to a TV or projector in the box.
 | URL | Serves | Audience |
 | --- | --- | --- |
 | `/` | Static landing page, plain HTML/CSS, no React | Google, and every link handed out |
+| `/help` | Help & tips: install, sound, share codes, sync, offline | Anyone stuck, plus informational search |
 | `/c/<CODE>` | Same shell, showing one workout and its code | QR scans, pasted links |
 | `/app` | The PWA as it is today | Installed users, always |
 
@@ -166,7 +167,12 @@ The h1 stays brand ("The whole screen is the timer") — keyword-stuffing an h1
 is a weak signal and it's the best line on the page. The terms live where they
 read naturally instead: the title and meta description, the lede, and a
 **formats section** (Tabata, EMOM, AMRAP, circuits, holds) that is genuinely
-useful as well as keyword-bearing, with `WebApplication` JSON-LD alongside.
+useful as well as keyword-bearing. `WebApplication` JSON-LD on the landing page,
+`FAQPage` on `/help`.
+
+`/help` is the more realistic ranking bet: informational queries ("why can't I
+hear the beeps on iPhone", "how long is an EMOM") are winnable in a way that
+"tabata timer" — a category with hundreds of established apps — is not.
 
 `/app` and `/c/<CODE>` are `noindex`: the app is the product rather than a page
 to rank, and one thin near-duplicate page per share code is exactly what a

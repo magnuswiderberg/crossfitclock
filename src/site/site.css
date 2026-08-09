@@ -441,6 +441,122 @@ main > section,
   font-size: 14px;
 }
 
+/* ---------- /help: long-form prose ----------
+   Narrow measure, generous spacing, and headings that stay scannable — it is
+   read standing up in a gym as often as sitting down. */
+.doc {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 16px 20px calc(64px + env(safe-area-inset-bottom));
+}
+
+.doc h1 {
+  font-size: clamp(38px, 8vw, 62px);
+}
+
+.doc-lede {
+  margin-top: 16px;
+  color: #cbc8c3;
+  font-size: 17.5px;
+  line-height: 1.55;
+}
+
+.doc-toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  margin-top: 28px;
+  padding: 18px 20px;
+  background: var(--card);
+  border-radius: 14px;
+}
+
+.doc-toc a {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  text-decoration: none;
+  border-bottom: 1px solid var(--line);
+}
+
+.doc-toc a:hover {
+  color: var(--text);
+  border-bottom-color: var(--prep);
+}
+
+.doc section {
+  margin-top: 52px;
+  /* Anchored jumps shouldn't tuck the heading under the top of the window. */
+  scroll-margin-top: 20px;
+}
+
+.doc h2 {
+  font-size: clamp(27px, 5vw, 36px);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.doc h3 {
+  font-family: var(--body);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  margin-top: 28px;
+}
+
+.doc p {
+  margin-top: 14px;
+  font-size: 16.5px;
+  line-height: 1.62;
+  color: #cbc8c3;
+}
+
+.doc strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.doc ol,
+.doc ul {
+  margin: 14px 0 0 22px;
+  font-size: 16.5px;
+  line-height: 1.62;
+  color: #cbc8c3;
+}
+
+.doc li {
+  margin-bottom: 6px;
+}
+
+.doc a {
+  color: var(--text);
+  text-decoration-color: var(--muted);
+  text-underline-offset: 3px;
+}
+
+/* An aside that matters more than the paragraph before it. */
+.doc-note {
+  margin-top: 18px;
+  padding: 14px 16px;
+  background: var(--card);
+  border-left: 3px solid var(--prep);
+  border-radius: 0 10px 10px 0;
+}
+
+.doc .closing {
+  margin-top: 64px;
+  padding: 48px 0 0;
+  border-top: 1px solid var(--line);
+  text-align: center;
+}
+
+.doc .closing h2 {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 2rem;
+}
+
 /* ---------- /c/<CODE>: one shared workout ----------
    Same shell, but it never imports anything: a tapped link opens the system
    browser, whose storage is separate from the installed app's, so an import

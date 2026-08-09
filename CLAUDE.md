@@ -98,10 +98,10 @@ https://claude.ai/code/artifact/f9493707-f78e-4004-8377-cba3b34e32bb
   own workout. Revoking a code on the Sync screen clears the owner's
   `shared`. Workouts shared before this existed carry no link and show no
   status until shared once more, which restores the same code.
-- **Three pages, not one app** (decided 2026-08-09): `/` is a static landing
-  page (plain HTML/CSS, no React — its job is to be crawlable and paint
-  instantly), `/c/<CODE>` shows one shared workout, and the PWA lives at
-  `/app`, which is the manifest's `start_url`. Manifest `id` stays `'/'` so
+- **Static pages, not one app** (decided 2026-08-09): `/` is a landing page and
+  `/help` is the help/tips page (both plain HTML/CSS, no React — their job is
+  to be crawlable and paint instantly), `/c/<CODE>` shows one shared workout,
+  and the PWA lives at `/app`, which is the manifest's `start_url`. Manifest `id` stays `'/'` so
   existing installs don't read as a different app, and the landing page
   redirects out of `display-mode: standalone` before paint, because iOS bakes
   `start_url` into the home-screen icon at install time. `/c/<CODE>`

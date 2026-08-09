@@ -35,6 +35,7 @@ const staticRoutes: Connect.NextHandleFunction = (req, _res, next) => {
   if (req.url) {
     if (/^\/c\/[^/?#]+/.test(req.url)) req.url = '/c/index.html'
     else if (/^\/app($|[?#])/.test(req.url)) req.url = '/app/index.html'
+    else if (/^\/help($|[?#])/.test(req.url)) req.url = '/help/index.html'
   }
   next()
 }
@@ -63,6 +64,7 @@ export default defineConfig({
       // screen inside the app bundle could never be.
       input: {
         landing: page('index.html'),
+        help: page('help/index.html'),
         code: page('c/index.html'),
         app: page('app/index.html'),
       },
@@ -91,7 +93,7 @@ export default defineConfig({
         // of the landing page from the second visit onwards. Both static pages
         // are precached under their own URLs, so they only need excluding here.
         navigateFallback: '/app/index.html',
-        navigateFallbackDenylist: [/^\/$/, /^\/index\.html$/, /^\/c\//],
+        navigateFallbackDenylist: [/^\/$/, /^\/index\.html$/, /^\/c\//, /^\/help(\/|$)/],
       },
       manifest: {
         // Identity, kept at '/' on purpose: the default id is start_url, so

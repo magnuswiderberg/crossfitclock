@@ -26,6 +26,7 @@ The site is three separate pages, not one app with routes:
 | URL | What it is |
 | --- | --- |
 | `/` | Static landing page — plain HTML/CSS, no React, built to be crawlable and to paint instantly |
+| `/help` | Help &amp; tips: installing, sound, share codes, sync, offline. Also the SEO surface for the informational searches |
 | `/c/<CODE>` | One shared workout: what's in it, and the code to type. Deliberately does **not** import — a tapped link opens the system browser, whose storage is separate from the installed app's |
 | `/app` | The PWA itself, and the manifest's `start_url` |
 
@@ -113,6 +114,7 @@ Notes for development:
 
 ```
 index.html    # Landing page (/)
+help/         # Help & tips page (/help)
 c/index.html  # Shared-workout page (/c/<CODE>)
 app/index.html# The PWA (/app)
 src/

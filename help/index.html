@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f1012" />
+    <title>Help &amp; tips — CrossFit Clock interval timer</title>
+    <meta
+      name="description"
+      content="How to run Tabata and EMOM workouts on CrossFit Clock: installing it, getting the beeps to play, sharing workouts by code, syncing devices, and using it offline."
+    />
+    <link rel="canonical" href="%SITE_URL%/help/" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="CrossFit Clock" />
+    <meta property="og:url" content="%SITE_URL%/help/" />
+    <meta property="og:title" content="Help &amp; tips — CrossFit Clock" />
+    <meta
+      property="og:description"
+      content="Installing, sound, share codes, sync and offline use — everything worth knowing about the timer."
+    />
+    <meta property="og:image" content="%SITE_URL%/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/src/site/site.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Does CrossFit Clock work offline?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Once installed, every preset runs with no network at all — the timer, the beeps and the spoken phase words are stored on the device. Only exercise names you type yourself need one online run to prepare their audio, after which they are cached too."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Why can't I hear the beeps on my iPhone?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "iOS mutes web audio while the ringer switch is set to silent. Flip the switch off silent and the beeps come back. This is the trade-off for the timer mixing with your music instead of pausing it."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How do I share a workout with someone?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Open the workout and tap Share. You get a four-character code. Anyone taps Add from share code on their own home screen, types the code, and the whole workout lands on their phone. They need no account."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is CrossFit Clock free?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, and there is no account to create. Syncing between your own devices and sharing workouts by code are free too; they use a handle and a sync code rather than an email address."
+            }
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <header class="site-nav">
+      <a class="site-mark" href="/">CrossFit Clock</a>
+      <a class="btn" href="/app/">Open the clock</a>
+    </header>
+
+    <main class="doc">
+      <h1>Help &amp; tips</h1>
+      <p class="doc-lede">
+        Everything worth knowing about running a workout off this clock — including the two or
+        three things phones do that will otherwise surprise you.
+      </p>
+
+      <nav class="doc-toc" aria-label="On this page">
+        <a href="#start">Getting started</a>
+        <a href="#install">Installing it</a>
+        <a href="#sound">Sound</a>
+        <a href="#building">Building a workout</a>
+        <a href="#sharing">Sharing by code</a>
+        <a href="#sync">Sync across devices</a>
+        <a href="#offline">Offline</a>
+        <a href="#trouble">When something's wrong</a>
+      </nav>
+
+      <section id="start">
+        <h2>Getting started</h2>
+        <p>
+          Open the clock, pick a workout, hit Start. You get five seconds of amber "get ready",
+          then the session runs: red for work, teal for rest, green when it's done. The
+          background colour is the phase — you can read it from the far end of the gym without
+          reading a number.
+        </p>
+        <p>
+          <strong>Tap anywhere to pause.</strong> Tapping again resumes. The bar along the
+          bottom shows what's coming next, and the arrow on it skips ahead. The row of plates
+          above it is your round progress.
+        </p>
+      </section>
+
+      <section id="install">
+        <h2>Installing it</h2>
+        <p>
+          It's a website until you add it to your home screen, and an app afterwards:
+          full-screen, no browser chrome, no signal required.
+        </p>
+        <h3>iPhone and iPad</h3>
+        <ol>
+          <li>Open <a href="/app/">the clock</a> in Safari (not Chrome — iOS only installs from Safari).</li>
+          <li>Tap the Share button.</li>
+          <li>Choose <strong>Add to Home Screen</strong>.</li>
+        </ol>
+        <h3>Android</h3>
+        <ol>
+          <li>Open <a href="/app/">the clock</a> in Chrome.</li>
+          <li>Open the ⋮ menu.</li>
+          <li>Choose <strong>Install app</strong>. Chrome often offers this on its own.</li>
+        </ol>
+        <p class="doc-note">
+          The installed app keeps its own storage, separate from the browser's. If you added
+          workouts in the browser before installing, they won't follow you across — set up
+          <a href="#sync">sync</a> and they will.
+        </p>
+      </section>
+
+      <section id="sound">
+        <h2>Sound</h2>
+        <h3>The silent switch (iPhone)</h3>
+        <p>
+          <strong>If you hear nothing on an iPhone, check the ringer switch.</strong> iOS mutes
+          this kind of audio whenever the phone is set to silent, and no website can detect the
+          switch or override it.
+        </p>
+        <p>
+          That's a deliberate trade: the timer asks the system for audio that <em>mixes</em>
+          with whatever else is playing, so your music keeps going underneath the beeps instead
+          of being paused or ducked between every round. The cost of mixing is obeying the
+          silent switch.
+        </p>
+        <h3>Voice announcements</h3>
+        <p>
+          Each interval is called as it begins — "Work", "Rest", or the exercise name you typed.
+          If you called an interval "Wall balls", the clock says <em>wall balls</em>.
+        </p>
+        <h3>Time calls</h3>
+        <p>
+          Switched on separately, because numbers without the phase words is a real combination
+          when a group is working off one screen. During work intervals the clock counts
+          <em>up</em> in milestones — "thirty", "one minute", "one thirty" — and counts
+          <em>in</em> with "ten" and "five" near the end.
+        </p>
+        <p>
+          The two vocabularies never overlap on purpose, so a spoken number is never ambiguous:
+          a milestone always means time served, and "ten" or "five" always means time left. On a
+          three-minute plank shared by ten people, everyone can hear their own goal go past
+          without anyone looking at the screen.
+        </p>
+        <h3>Bluetooth speakers</h3>
+        <p>
+          Beeps and announcements travel together, so connecting a speaker moves the whole clock
+          to it — not half of it, with the rest coming out of a phone in someone's pocket.
+        </p>
+      </section>
+
+      <section id="building">
+        <h2>Building a workout</h2>
+        <p>
+          A workout is <strong>blocks</strong> (Warm-up, Main, Finisher) of
+          <strong>sets</strong> (8 rounds of 20/10) of <strong>intervals</strong> (work seconds,
+          rest seconds, and an optional exercise name). Most gym formats are just numbers in
+          that shape:
+        </p>
+        <ul>
+          <li><strong>Tabata</strong> — one set, 8 rounds, 20 s work and 10 s rest.</li>
+          <li><strong>EMOM</strong> — one interval of 60 s, as many rounds as you want.</li>
+          <li>
+            <strong>AMRAP</strong> — one long interval, with the rep scheme written in the
+            workout's description.
+          </li>
+          <li>
+            <strong>Circuits</strong> — one named interval per station, and a rest after the
+            set.
+          </li>
+        </ul>
+        <p class="doc-note">
+          Rest between rounds is the last interval's own rest — it fires at the end of every
+          round. Rest after the whole set is separate. Trailing rest is trimmed, so a session
+          always ends on effort rather than on a countdown nobody is watching.
+        </p>
+      </section>
+
+      <section id="sharing">
+        <h2>Sharing by code</h2>
+        <p>
+          Open a workout and tap <strong>Share</strong>. You get a four-character code. Anyone
+          taps <strong>Add from share code</strong> on their home screen, types it, and the whole
+          workout arrives — every block, set and interval. They need no account, and there's
+          nothing to install first.
+        </p>
+        <p>
+          The code stays on screen while the workout runs and again, in full size with a QR
+          code, when it finishes. A class working off one clock can take the session home
+          without anyone writing anything down.
+        </p>
+        <p class="doc-note">
+          <strong>A share is a snapshot, not a live link.</strong> Editing a workout you've
+          shared changes nothing for anyone until you share it again — and even then, people who
+          added it only get the new version when they tap <strong>Update from share</strong>.
+          Your workout's page tells you when the two have drifted apart.
+        </p>
+        <p>Your codes are listed, and revocable, on the Sync screen.</p>
+      </section>
+
+      <section id="sync">
+        <h2>Sync across devices</h2>
+        <p>
+          Optional, and there's no email or password. Claim a <strong>handle</strong> and the
+          server gives you a <strong>sync code</strong>; enter both on another device and your
+          workouts follow you. Edit on a laptop, run on a phone.
+        </p>
+        <p class="doc-note">
+          Write the sync code down. It's the only key to the account, and nobody can post it
+          back to you — there's no email address on file to send it to.
+        </p>
+        <p>Presets never sync, and the app works completely without an account.</p>
+      </section>
+
+      <section id="offline">
+        <h2>Offline</h2>
+        <p>
+          Once installed, every preset runs with no network at all. The timer, the beeps, the
+          phase words and all the spoken numbers are stored on the device.
+        </p>
+        <p>
+          The one exception is an exercise name you typed yourself: its audio is prepared the
+          first time you save or run that workout online, and cached from then on. Run a new
+          workout once with a connection and it's yours for good — and if it hasn't been
+          prepared yet, the clock falls back to your browser's own voice rather than going
+          quiet.
+        </p>
+      </section>
+
+      <section id="trouble">
+        <h2>When something's wrong</h2>
+        <h3>The beeps stopped mid-workout</h3>
+        <p>
+          Another app — usually a music app — took over the phone's audio. The clock notices and
+          shows "Beeps muted"; tap the screen once and it rebuilds its audio and carries on. The
+          countdown itself never stopped.
+        </p>
+        <h3>I hear nothing at all on an iPhone</h3>
+        <p>The ringer switch is on silent. See <a href="#sound">Sound</a> above.</p>
+        <h3>The screen keeps going dark</h3>
+        <p>
+          The clock asks the phone to stay awake while a session runs. If the browser refuses —
+          some do in low-power mode — plug the phone in, or raise the screen timeout in system
+          settings.
+        </p>
+        <h3>I reloaded and lost my session</h3>
+        <p>
+          You shouldn't have: a running session is saved with a wall-clock anchor and restored
+          on load, so a reload or a phone restart drops you back into the clock where it
+          genuinely is by then, not where it was when you left.
+        </p>
+        <h3>A code says nothing was shared</h3>
+        <p>
+          Either it was revoked, or a character was misread. Codes avoid the ambiguous
+          characters, so there's no O/0 or I/1 confusion to worry about — ask for it again.
+        </p>
+      </section>
+
+      <section class="closing">
+        <h2>Pick one, hit start.</h2>
+        <a class="btn btn-primary btn-lg" href="/app/">Open the clock</a>
+      </section>
+    </main>
+
+    <footer class="site-foot">
+      <span>CrossFit Clock</span>
+      <a href="/">Home</a>
+    </footer>
+  </body>
+</html>
