@@ -116,6 +116,8 @@ https://claude.ai/code/artifact/f9493707-f78e-4004-8377-cba3b34e32bb
   don't run JS), so `%SITE_URL%` is substituted at build time from `SITE_URL`
   in `vite.config.ts` — currently the placeholder host
   `https://workout.magnuswiderberg.se`, and the one edit a domain move needs.
+  `/app` and `/c/<CODE>` are `noindex`; the h1 on `/` stays brand, with the
+  search terms carried by the title, lede and the formats section instead.
   Rationale, and why native app stores were rejected:
   `docs/distribution-plan.md`.
 - The share code appears **on the run screen** (corner, quiet) and **on the

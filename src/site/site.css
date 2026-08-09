@@ -276,6 +276,50 @@ main > section,
   font-size: 15.5px;
 }
 
+/* ---------- formats ----------
+   Carries the words people actually search for (tabata, emom, amrap) in a
+   place where saying them is useful rather than stuffed. */
+.formats {
+  padding-top: 64px;
+  padding-bottom: 72px;
+  border-top: 1px solid var(--line);
+}
+
+.formats h2,
+.install h2 {
+  font-size: clamp(30px, 4.4vw, 46px);
+  /* Wide enough that a two-clause heading breaks once, not twice. */
+  max-width: 26ch;
+}
+
+.formats-lede {
+  margin-top: 18px;
+  max-width: 60ch;
+  color: #cbc8c3;
+  font-size: 16.5px;
+}
+
+.format-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px 28px;
+  margin-top: 32px;
+}
+
+.format dt {
+  font-family: var(--display);
+  font-size: 21px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.format dd {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 15.5px;
+  line-height: 1.5;
+}
+
 /* ---------- sharing ---------- */
 .share {
   display: grid;
@@ -331,10 +375,6 @@ main > section,
   padding-top: 64px;
   padding-bottom: 72px;
   border-top: 1px solid var(--line);
-}
-
-.install h2 {
-  font-size: clamp(30px, 4.4vw, 46px);
 }
 
 .install-grid {

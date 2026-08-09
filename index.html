@@ -4,19 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#0f1012" />
-    <title>CrossFit Clock — interval timer for Tabata and CrossFit</title>
+    <title>Interval Timer for Tabata, EMOM &amp; CrossFit — CrossFit Clock</title>
     <meta
       name="description"
-      content="A gym timer you can read from across the room. Colour tells you the phase, it calls the time out loud, and it runs offline. Free, no account needed."
+      content="A free interval timer built for the gym. Read it from across the room, hear your own exercises called out by name, and run it with no signal. Tabata, EMOM, AMRAP."
     />
     <link rel="canonical" href="%SITE_URL%/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="CrossFit Clock" />
     <meta property="og:url" content="%SITE_URL%/" />
-    <meta property="og:title" content="CrossFit Clock — the whole screen is the timer" />
+    <meta property="og:title" content="Interval Timer for Tabata, EMOM &amp; CrossFit — CrossFit Clock" />
     <meta
       property="og:description"
-      content="Interval timer for Tabata and CrossFit. Glanceable from across the box, calls the time out loud, works offline."
+      content="A free workout timer you can read from across the gym. It calls your exercises out loud, counts the time for you, and runs offline."
     />
     <meta property="og:image" content="%SITE_URL%/og-image.png" />
     <meta property="og:image:width" content="1200" />
@@ -33,6 +33,26 @@
         location.replace('/app/')
     </script>
     <link rel="stylesheet" href="/src/site/site.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "CrossFit Clock",
+        "url": "%SITE_URL%/",
+        "applicationCategory": "HealthApplication",
+        "operatingSystem": "Any device with a web browser",
+        "browserRequirements": "Requires JavaScript",
+        "description": "A free interval timer for Tabata, EMOM, AMRAP and CrossFit sessions. Readable across the gym, calls exercises and time out loud, and runs offline.",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "featureList": [
+          "Tabata, EMOM, AMRAP and custom interval timers",
+          "Colour-coded full-screen display readable from across the gym",
+          "Spoken exercise names and time calls",
+          "Works offline as an installable web app",
+          "Share workouts with a four-character code"
+        ]
+      }
+    </script>
   </head>
   <body>
     <header class="site-nav">
@@ -47,9 +67,9 @@
         <div class="hero-copy">
           <h1>The whole screen is the timer.</h1>
           <p class="lede">
-            An interval timer for Tabata, EMOM and CrossFit sessions — built to be read from
-            three metres away, mid-burpee, by ten people at once. Colour announces the phase
-            before you've read anything.
+            A free interval timer for Tabata, EMOM, AMRAP and CrossFit sessions — built to be
+            read from three metres away, mid-burpee, by ten people at once. Colour announces
+            the phase before you've read anything.
           </p>
           <div class="cta-row">
             <a class="btn btn-primary btn-lg" href="/app/">Start a workout</a>
@@ -83,31 +103,67 @@
         </article>
 
         <article class="feature" style="--accent: var(--rest)">
-          <h2>It calls the time out loud</h2>
+          <h2>It calls your exercises by name</h2>
           <p>
-            "Work." "Rest." And on long intervals, the time itself — "thirty… one minute… one
-            thirty" on the way up, "ten… five" on the way down. Ten people sharing a three
-            minute plank, each with their own goal, none of them able to look at a screen.
+            Type "Wall balls" into an interval and the clock says <em>wall balls</em> when it
+            starts. Not a beep you have to interpret, and not a screen you have to find — the
+            workout you wrote runs itself, and everyone hears what's next while their hands
+            are still on the bar.
           </p>
         </article>
 
         <article class="feature" style="--accent: var(--prep)">
-          <h2>Beeps go where your music goes</h2>
+          <h2>Numbers you can hear</h2>
           <p>
-            Announcements play through the same audio path as the beeps, so with a Bluetooth
-            speaker connected everything comes out of the speaker — not half of it out of a
-            phone in someone's pocket. Your music keeps playing underneath.
+            On long intervals it calls the time itself — "thirty… one minute… one thirty" on
+            the way up, "ten… five" on the way down. Ten people sharing a three minute plank,
+            each with their own goal, none of them able to look at a screen.
           </p>
         </article>
 
         <article class="feature" style="--accent: var(--done)">
-          <h2>Installs like an app, runs like one</h2>
+          <h2>It plays over your music</h2>
           <p>
-            Add it to your home screen and it opens full-screen with no browser chrome. Every
-            preset runs with no network at all, and a session that gets interrupted picks up
-            where the clock actually is — not where it was when the screen went dark.
+            Beeps and announcements mix with whatever you've got on — Spotify, YouTube, the
+            gym's own speaker — instead of pausing it or ducking it to a whisper between every
+            round. Put the phone on a Bluetooth speaker and the whole class hears the same
+            clock.
           </p>
         </article>
+      </section>
+
+      <section class="formats" id="formats">
+        <h2>Tabata, EMOM, AMRAP — or whatever you call yours</h2>
+        <p class="formats-lede">
+          A workout is blocks of sets of intervals, so most gym formats are just numbers you
+          type in. These come as presets; the rest takes about a minute to build.
+        </p>
+        <dl class="format-grid">
+          <div class="format">
+            <dt>Tabata</dt>
+            <dd>8 rounds of 20 seconds work, 10 seconds rest. Four minutes, and it reads 4:00.</dd>
+          </div>
+          <div class="format">
+            <dt>EMOM</dt>
+            <dd>Every minute on the minute — one interval, as many rounds as you've got in you.</dd>
+          </div>
+          <div class="format">
+            <dt>AMRAP</dt>
+            <dd>One long interval and a rep scheme in the notes. The clock just holds the window.</dd>
+          </div>
+          <div class="format">
+            <dt>Circuits</dt>
+            <dd>A named exercise per station, called out as you rotate. Rest after the set.</dd>
+          </div>
+          <div class="format">
+            <dt>Warm-up to finisher</dt>
+            <dd>Separate blocks in one session, so the whole class runs off one clock.</dd>
+          </div>
+          <div class="format">
+            <dt>Holds and planks</dt>
+            <dd>Long intervals where the spoken count-up is the only thing you need.</dd>
+          </div>
+        </dl>
       </section>
 
       <section class="share" id="share">
@@ -131,7 +187,12 @@
       </section>
 
       <section class="install" id="install">
-        <h2>Add it to your phone</h2>
+        <h2>Add it to your phone — then forget about the signal</h2>
+        <p class="formats-lede">
+          Installed, it opens full-screen with no browser chrome and every preset runs with no
+          network at all. A session that gets interrupted picks up where the clock actually is,
+          not where it was when the screen went dark.
+        </p>
         <div class="install-grid">
           <div class="install-card">
             <h3>iPhone / iPad</h3>
