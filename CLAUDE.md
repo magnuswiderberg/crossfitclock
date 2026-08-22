@@ -54,7 +54,8 @@ https://claude.ai/code/artifact/f9493707-f78e-4004-8377-cba3b34e32bb
   in localStorage (`crossfitclock.sync.v1`, with deletion tombstones).
   Sync is offline-first, last-write-wins per workout via `updatedAt`, one
   `POST /api/sync` round trip; presets never sync. Infra is Bicep in
-  `infra/` (`deploy.ps1`); local dev uses the Docker Cosmos emulator (vnext,
+  `infra/` (`deploy.ps1`; `-Environment <name>` deploys to a SWA preview
+  environment instead of production — see README); local dev uses the Docker Cosmos emulator (vnext,
   plain HTTP on :8081) with `npm run api` + a Vite `/api` proxy.
   `api/local.settings.json` is gitignored (it's where a real Speech key goes);
   copy `api/local.settings.example.json` once — it carries the emulator's

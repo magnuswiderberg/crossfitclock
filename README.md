@@ -101,6 +101,27 @@ can, so a stale login can't publish into the wrong tenant. In CI, where there's
 no working tree to drop a file into, set `AZURE_TENANT_ID` and
 `AZURE_SUBSCRIPTION_ID` instead.
 
+To try a branch before it goes live, deploy it to a named
+[preview environment](https://learn.microsoft.com/azure/static-web-apps/preview-environments)
+instead of production:
+
+```powershell
+.\infra\deploy.ps1 -Environment landing
+```
+
+SWA creates the environment on first deploy and serves it at
+`<default-host>-landing.<location>.azurestaticapps.net` (printed at the end;
+the custom domain never applies to previews, so the canonical and Open Graph
+tags in a preview still name the production site). Names are alphanumeric, 16
+characters max; the Free plan allows three, listed and deleted with
+`az staticwebapp environment list|delete`. Two things to know: the API's app
+settings are copied from production when the environment is created, so if
+`/api/share/7K4M` fails on a fresh preview, set them for that environment with
+`az staticwebapp appsettings set --environment-name landing …`; and there is
+one Cosmos database behind every environment, so a preview deploy seeds the
+easter-egg share into the same data production reads. What a preview can't
+prove is the migration of *existing* installs — it is a fresh origin with none.
+
 Notes for development:
 
 - Sound starts on the first **Start** tap (browsers require a user gesture before audio). If you hear nothing, check the tab isn't muted.

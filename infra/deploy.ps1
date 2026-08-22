@@ -2,11 +2,20 @@
 # Requires: az CLI (logged in), Node 20+. Run from anywhere.
 #
 #   copy infra\deploy.local.example.json infra\deploy.local.json   (fill it in, once)
-#   .\infra\deploy.ps1
+#   .\infra\deploy.ps1                        # production
+#   .\infra\deploy.ps1 -Environment landing   # a named preview environment
 
 param(
   [string]$ResourceGroup = 'rg-static-sites',
   [string]$SwaName = 'swa-crossfitclock',
+  # 'production', or the name of a preview environment, which SWA creates on
+  # first deploy and serves at <default-host>-<name>.<location>.azurestaticapps.net
+  # (the custom domain never applies to previews). Alphanumeric, 16 chars max,
+  # so a branch name with a slash or a dash in it won't do. The Free plan
+  # allows 3; free one up with
+  #   az staticwebapp environment delete --name <swa> --resource-group <rg> --environment-name <name>
+  [ValidatePattern('^[A-Za-z0-9]{1,16}$')]
+  [string]$Environment = 'production',
   # Defaults match main.bicep's cosmosAccountName / cosmosResourceGroup; only
   # used to seed the easter-egg share code after the deploy.
   [string]$CosmosAccountName = 'mwse-cosmos',
@@ -92,11 +101,12 @@ try {
   npm run build
   if ($LASTEXITCODE -ne 0) { throw 'App build failed' }
 
-  Write-Host "==> Deploying to Static Web App '$SwaName'" -ForegroundColor Cyan
+  Write-Host "==> Deploying to Static Web App '$SwaName', environment '$Environment'" -ForegroundColor Cyan
+  # One deployment token serves every environment of the app.
   $token = az staticwebapp secrets list --name $SwaName --resource-group $ResourceGroup --query 'properties.apiKey' --output tsv
   if ($LASTEXITCODE -ne 0 -or -not $token) { throw 'Could not fetch SWA deployment token' }
 
-  npx --yes @azure/static-web-apps-cli deploy ./dist --api-location ./api --api-language node --api-version 22 --deployment-token $token --env production
+  npx --yes @azure/static-web-apps-cli deploy ./dist --api-location ./api --api-language node --api-version 22 --deployment-token $token --env $Environment
   if ($LASTEXITCODE -ne 0) { throw 'SWA deploy failed' }
 }
 finally {
@@ -106,6 +116,8 @@ finally {
 Write-Host "==> Seeding the easter-egg share code" -ForegroundColor Cyan
 # The landing page prints 7K4M as its example code, so it resolves to a real
 # workout. Never fatal: a missing easter egg is not a broken deploy.
+# Runs for every environment: one Cosmos database sits behind all of them, so
+# a preview deploy seeds production's API too. Idempotent, so that's harmless.
 try {
   $cosmosEndpoint = az cosmosdb show --name $CosmosAccountName --resource-group $CosmosResourceGroup --query 'documentEndpoint' --output tsv
   $cosmosKey = az cosmosdb keys list --name $CosmosAccountName --resource-group $CosmosResourceGroup --query 'primaryMasterKey' --output tsv
@@ -124,5 +136,20 @@ finally {
   if (Test-Path Env:\COSMOS_KEY) { Remove-Item Env:\COSMOS_KEY }
 }
 
-$hostname = az staticwebapp show --name $SwaName --resource-group $ResourceGroup --query 'defaultHostname' --output tsv
-Write-Host "==> Done: https://$hostname" -ForegroundColor Green
+# defaultHostname is always production's. A preview environment is listed under
+# its own name (production's entry is 'default'), matched case-insensitively in
+# case the service doesn't keep the case it was deployed with.
+if ($Environment -eq 'production') {
+  $hostname = az staticwebapp show --name $SwaName --resource-group $ResourceGroup --query 'defaultHostname' --output tsv
+}
+else {
+  $environments = az staticwebapp environment list --name $SwaName --resource-group $ResourceGroup --output json | ConvertFrom-Json
+  $hostname = ($environments | Where-Object { $_.buildId -ieq $Environment } | Select-Object -First 1).hostname
+}
+if ($hostname) {
+  Write-Host "==> Done: https://$hostname" -ForegroundColor Green
+}
+else {
+  Write-Host "==> Done. Couldn't find the hostname for environment '$Environment' - run:" -ForegroundColor Green
+  Write-Host "    az staticwebapp environment list --name $SwaName --resource-group $ResourceGroup --output table" -ForegroundColor DarkGray
+}
