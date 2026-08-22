@@ -191,6 +191,32 @@ What landed:
 - `api/local.settings.json` is gitignored (a real `SPEECH_KEY` belongs in it);
   `api/local.settings.example.json` is the committed copy.
 
+### Level and sequencing (2026-08-22)
+
+Field feedback: the voice was barely audible over music on a Bluetooth
+speaker, while the beeps were fine.
+
+- Clips are **peak-normalized at play time** (`clipBounds` in `audio.ts`,
+  measured once per decoded buffer) and pushed `VOICE_BOOST` (×3) into the
+  master compressor, which limits them. At unity a spoken word's body sat
+  ~10 dB under the near-full-scale beeps. Ducking the music instead is not on
+  the table: the Audio Session API's `transient` type only "maybe" ducks per
+  the spec, and WebKit maps it to the same category as `ambient`.
+- The beeps came up a notch too (`BEEP_LEVEL` 1.5 / `BEEP_ACCENT` 1.7, from
+  0.9 / 1.0), which needed a **hard limiter** (−2 dB, 20:1) after the
+  compressor: the go beep under a label's first syllable already summed to
+  full scale, so neither could rise without clipping there. The compressor
+  sets the loudness, the limiter the ceiling; a flat tone is at that ceiling
+  by construction, so any further beep loudness has to come from sustain or
+  harmonics, not level.
+- Every Azure clip is padded to 1.6–2.2 s of buffer for well under a second
+  of speech. `clipBounds` also records the spoken onset and end, which is what
+  `announcePhrase` (`speech.ts`) uses to string "Rest", "Next up is" and a
+  label together with a 0.15 s breath — and to decide whether the phrase ends
+  before the countdown ticks, the condition for saying it at all.
+- "Next up is" joins the bundled vocabulary (`excited`, matching the label
+  clip that follows it; `next-up.mp3`).
+
 ### How the pieces line up
 
 The voice, the style table and the key formula are written out in three

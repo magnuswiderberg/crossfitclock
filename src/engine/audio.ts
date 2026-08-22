@@ -59,15 +59,28 @@ export async function initAudio(): Promise<void> {
   }
   if (!ctx) {
     ctx = new AudioContext()
-    // Beeps are layered oscillators pushed near full scale; the compressor
-    // catches the summed peaks so they stay loud without clipping.
+    // Beeps are layered oscillators pushed well over full scale, and voice
+    // clips are boosted the same way; the compressor squeezes them loud
+    // without clipping. Its makeup gain (≈ +5 dB at these settings) is what
+    // lifts a spoken word's body, so its ratio stays gentle.
     master = ctx.createDynamicsCompressor()
     master.threshold.value = -12
     master.knee.value = 6
     master.ratio.value = 4
     master.attack.value = 0.001
     master.release.value = 0.1
-    master.connect(ctx.destination)
+    // The compressor sets the loudness; the limiter sets the ceiling. With
+    // the compressor alone, the one place the beeps and the voice meet — the
+    // boundary beep under a label's first syllable — already summed to full
+    // scale, so neither could come up without clipping there. A hard limiter
+    // catches that sum, and its own makeup gain (≈ +1 dB) goes to everything.
+    const limiter = ctx.createDynamicsCompressor()
+    limiter.threshold.value = -2
+    limiter.knee.value = 1
+    limiter.ratio.value = 20
+    limiter.attack.value = 0.001
+    limiter.release.value = 0.05
+    master.connect(limiter).connect(ctx.destination)
     if (ctx.state !== 'running') await tryResume(ctx)
   }
 }
@@ -107,13 +120,69 @@ export async function decodeClip(bytes: ArrayBuffer): Promise<AudioBuffer | null
   }
 }
 
+/**
+ * What a decoded clip is like, measured once: its loudest sample, and where
+ * the speech actually sits inside the buffer. A synthesized clip is padded —
+ * the bundled words run 1.6–2.2 s of buffer for well under a second of
+ * speech — so anything placing words one after another must go by these, not
+ * by `buffer.duration`.
+ */
+export interface ClipBounds {
+  peak: number
+  /** Seconds into the buffer where the speech begins. */
+  onset: number
+  /** Seconds into the buffer where it has ended. */
+  end: number
+}
+
+/** Below this a sample is silence: −40 dBFS, under the noise floor of an MP3 pause. */
+const SILENCE = 0.01
+
+const bounds = new WeakMap<AudioBuffer, ClipBounds>()
+
+export function clipBounds(buffer: AudioBuffer): ClipBounds {
+  const known = bounds.get(buffer)
+  if (known) return known
+  let peak = 0
+  let first = buffer.length
+  let last = -1
+  for (let ch = 0; ch < buffer.numberOfChannels; ch++) {
+    const data = buffer.getChannelData(ch)
+    for (let i = 0; i < data.length; i++) {
+      const v = Math.abs(data[i])
+      if (v > peak) peak = v
+      if (v > SILENCE) {
+        if (i < first) first = i
+        last = i
+      }
+    }
+  }
+  // A silent clip has nothing to normalize or to place; treat it as full.
+  const result: ClipBounds =
+    last < 0
+      ? { peak: 1, onset: 0, end: buffer.duration }
+      : { peak, onset: first / buffer.sampleRate, end: (last + 1) / buffer.sampleRate }
+  bounds.set(buffer, result)
+  return result
+}
+
+/**
+ * Voice clips are normalized to full scale and then pushed this far past it
+ * into the master compressor, which limits the peaks. Sized to land a spoken
+ * word's body at about the beeps' level: speech carries ~14 dB of peak over
+ * body, and the beeps sit near full scale, so a clip played at unity was some
+ * 10 dB under them and went missing behind music. Being heard over music is
+ * the whole point of the voice — if it ever distorts, this is the one dial.
+ */
+const VOICE_BOOST = 3
+
 /** Schedule a decoded clip, sharing the compressor (and route) with the beeps. */
-export function playBuffer(buffer: AudioBuffer, delay = 0, volume = 1): void {
+export function playBuffer(buffer: AudioBuffer, delay = 0): void {
   if (!ctx || !master) return
   const src = ctx.createBufferSource()
   src.buffer = buffer
   const gain = ctx.createGain()
-  gain.gain.value = volume
+  gain.gain.value = VOICE_BOOST / clipBounds(buffer).peak
   src.connect(gain).connect(master)
   src.start(ctx.currentTime + delay)
   pending.add(src)
@@ -124,7 +193,17 @@ export function playBuffer(buffer: AudioBuffer, delay = 0, volume = 1): void {
   }
 }
 
-function tone(freq: number, duration: number, delay = 0, volume = 0.9): void {
+/**
+ * Beep level before the compressor. The layered oscillators sum to ~1.8× this,
+ * so a beep leans on the compressor hard, and turning this up buys mostly
+ * compression rather than level (ratio 4: +4 dB in ≈ +1 dB out) — the
+ * limiter is what lets it sit this high next to a voice clip at all.
+ */
+const BEEP_LEVEL = 1.5
+/** The "go" and the finish, a notch above the rest. */
+const BEEP_ACCENT = 1.7
+
+function tone(freq: number, duration: number, delay = 0, volume = BEEP_LEVEL): void {
   if (!ctx || !master) return
   const t0 = ctx.currentTime + delay
   const gain = ctx.createGain()
@@ -177,7 +256,7 @@ export function beepCountdownRest(delay = 0): void {
 
 /** Higher, longer beep: work starts now. */
 export function beepGo(delay = 0): void {
-  tone(1320, 0.3, delay, 1)
+  tone(1320, 0.3, delay, BEEP_ACCENT)
 }
 
 /** Lower beep: time to rest. */
@@ -189,5 +268,5 @@ export function beepRest(delay = 0): void {
 export function beepFinish(delay = 0): void {
   tone(660, 0.15, delay)
   tone(880, 0.15, delay + 0.18)
-  tone(1320, 0.5, delay + 0.36, 1)
+  tone(1320, 0.5, delay + 0.36, BEEP_ACCENT)
 }

@@ -23,7 +23,10 @@ $clips = @(
   @{ File = 'work';      Text = 'Work';      Style = 'excited' },
   @{ File = 'rest';      Text = 'Rest';      Style = 'shouting' },
   @{ File = 'get-ready'; Text = 'Get ready'; Style = 'excited' },
-  @{ File = 'done';      Text = 'Done';      Style = 'excited' }
+  @{ File = 'done';      Text = 'Done';      Style = 'excited' },
+  # Leads into a work label's own clip ("Rest ... Next up is ... Burpees"), so
+  # it shares that clip's 'excited' style rather than the rest's 'shouting'.
+  @{ File = 'next-up';   Text = 'Next up is'; Style = 'excited' }
 )
 
 # Time calls: the countdown words, then the count-up ladder (30 s steps to five

@@ -1,11 +1,11 @@
 /**
  * Announcement clips: spoken text → an AudioBuffer the session can schedule.
  *
- * The fixed vocabulary (Work, Rest, Get ready, Done) ships in the repo and is
- * precached by the service worker, so every preset announces with no network
- * at all — no preset labels an interval. Anything else is an exercise label
- * someone typed, synthesized on demand by /api/speech and then fetched once
- * per device into Cache Storage.
+ * The fixed vocabulary (Work, Rest, Get ready, Done, Next up is) ships in the
+ * repo and is precached by the service worker, so every preset announces with
+ * no network at all — no preset labels an interval. Anything else is an
+ * exercise label someone typed, synthesized on demand by /api/speech and then
+ * fetched once per device into Cache Storage.
  *
  * A clip is addressed by sha256(voice | style | normalized text). That formula
  * and the voice/style table below are duplicated in
@@ -14,6 +14,7 @@
  */
 import doneUrl from '../audio/done.mp3'
 import getReadyUrl from '../audio/get-ready.mp3'
+import nextUpUrl from '../audio/next-up.mp3'
 import restUrl from '../audio/rest.mp3'
 import workUrl from '../audio/work.mp3'
 import { compile, type Segment } from '../model/compile'
@@ -47,6 +48,7 @@ const BUNDLED: Record<string, string> = {
   'rest|rest': restUrl,
   'work|get ready': getReadyUrl,
   'work|done': doneUrl,
+  'work|next up is': nextUpUrl,
   // Every time-call word ships too, which is why calls never touch /api/speech.
   ...Object.fromEntries(Object.entries(WORDS).map(([text, url]) => [`call|${text}`, url])),
 }
@@ -66,7 +68,7 @@ function cacheId(item: ClipItem): string {
   return `${item.kind}|${normalize(item.text)}`
 }
 
-/** True for the four words that ship in the repo — no backend needed. */
+/** True for the words that ship in the repo — no backend needed. */
 export function isBundled(item: ClipItem): boolean {
   return cacheId(item) in BUNDLED
 }
@@ -176,13 +178,38 @@ export function announcementFor(seg: Segment): ClipItem {
 /** Said at the end of the last segment. */
 export const FINISH_ANNOUNCEMENT: ClipItem = { text: 'Done', kind: 'work' }
 
+/** Said before the name of what a rest leads into: "Rest … Next up is … Burpees". */
+export const NEXT_UP: ClipItem = { text: 'Next up is', kind: 'work' }
+
+/**
+ * The exercise a rest leads into, when naming it is worth the breath: the
+ * segment after the rest is work with a label of its own (never "Next up is
+ * Work"), and it is not the one just done — a Tabata of burpees says "Rest"
+ * eight times, not "Rest, next up is burpees" eight times; the call marks a
+ * change. It is the work segment's own announcement, so the same clip serves
+ * both and nothing extra is synthesized. Whether there is time to say it is
+ * the scheduler's call: that depends on how long the clips turn out to be.
+ */
+export function nextUpFor(segments: Segment[], index: number): ClipItem | null {
+  const seg = segments[index]
+  if (seg.type !== 'rest' && seg.type !== 'setRest') return null
+  const next = segments[index + 1]
+  // "Work" is compile()'s stand-in for an unlabeled interval.
+  if (next?.type !== 'work' || next.label === 'Work') return null
+  let prev = index - 1
+  while (prev >= 0 && segments[prev].type !== 'work') prev--
+  if (prev >= 0 && normalize(segments[prev].label) === normalize(next.label)) return null
+  return announcementFor(next)
+}
+
 /** Everything a session can say, deduplicated — one clip covers every repeat. */
 export function announcementsIn(segments: Segment[]): ClipItem[] {
   const items = new Map<string, ClipItem>()
-  for (const seg of segments) {
+  segments.forEach((seg, i) => {
     const item = announcementFor(seg)
     items.set(cacheId(item), item)
-  }
+    if (nextUpFor(segments, i)) items.set(cacheId(NEXT_UP), NEXT_UP)
+  })
   if (items.size > 0) items.set(cacheId(FINISH_ANNOUNCEMENT), FINISH_ANNOUNCEMENT)
   return [...items.values()]
 }

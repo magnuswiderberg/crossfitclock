@@ -136,6 +136,36 @@ https://claude.ai/code/artifact/f9493707-f78e-4004-8377-cba3b34e32bb
   offline), and calls have **no Web Speech fallback** — a late number misleads
   someone deciding when to drop out. Policy lives in `src/engine/timecalls.ts`;
   the word list is mirrored in `scripts/build-audio.ps1`.
+- **Next up** (decided 2026-08-22): a rest announces the exercise it leads
+  into — "Rest … Next up is … Burpees" — when that is a labeled work interval
+  **and a different one** from what was just done (a Tabata of burpees still
+  just says "Rest"; the call marks a change). No toggle: it rides on voice
+  announcements. The one case against it, very short rests, is handled by a
+  **fit rule** instead of an opt-out — the phrase is scheduled only if its last
+  word ends before the countdown ticks begin (`announcePhrase` in
+  `src/engine/speech.ts`, room = rest − `COUNTDOWN_SECONDS`), which in practice
+  means rests of about 5 s and up; shorter ones keep "Rest" alone, because a
+  name that lands as the work starts prepares no one and talks over the ticks.
+  "Next up is" is a bundled clip in the `excited` style, so it matches the
+  label clip that follows — the same clip the work interval announces with,
+  so nothing extra is synthesized. Words are sequenced by their spoken bounds,
+  not buffer length: Azure pads every clip to 1.6–2.2 s for well under a
+  second of speech (`clipBounds` in `src/engine/audio.ts`). Clip-only, no Web
+  Speech fallback, all-or-nothing.
+- **Sound levels** (2026-08-22): clips are peak-normalized at play time and
+  pushed `VOICE_BOOST` (×3) into the master compressor — at unity a spoken
+  word's body sat ~10 dB under the near-full-scale beeps and was lost behind
+  music. Ducking the music instead is not available to the web: `'transient'`
+  is the only Audio Session type that even mentions ducking ("maybe"), and
+  WebKit maps it to the same category as `'ambient'`. The chain is
+  compressor → **hard limiter** (−2 dB, 20:1) → destination: the compressor
+  sets loudness (its makeup gain is what lifts the voice's body, so its ratio
+  stays gentle) and the limiter owns the ceiling. The limiter exists because
+  the go beep under a label's first syllable already summed to full scale, so
+  beeps could not come up without it; with it, `BEEP_LEVEL` 1.5 / `BEEP_ACCENT`
+  1.7 (from 0.9 / 1.0). Beeps are flat tones, so they are at the ceiling by
+  construction — more level is no longer available, only more sustain or
+  harmonics.
 - The in-flight session persists to `crossfitclock.session.v1` (workout
   snapshot + wall-clock anchor) and is restored on load, so a reload or PWA
   restart drops back into the running clock. Cleared on finish/exit.

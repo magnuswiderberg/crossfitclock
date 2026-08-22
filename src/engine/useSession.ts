@@ -17,9 +17,12 @@ import {
   callsFor,
   callVocabularyIn,
   FINISH_ANNOUNCEMENT,
+  NEXT_UP,
+  nextUpFor,
 } from './clips'
 import {
   announce,
+  announcePhrase,
   cancelAnnouncements,
   prepareAnnouncements,
   primeSpeech,
@@ -152,6 +155,24 @@ export function useSession(
   const clipsReadyRef = useRef(false)
 
   /**
+   * Announce segment `index` in `delay` seconds, with `remaining` seconds of it
+   * left by then: its phase word, and for a rest that leads into a new
+   * exercise, the exercise's name — if the whole phrase is said before the
+   * countdown ticks take over the last COUNTDOWN_SECONDS. That is what keeps
+   * a 3 s rest to "Rest": the ticks are the cue that matters, and a name that
+   * lands as the work starts prepares no one.
+   */
+  const announceSegment = useCallback(
+    (index: number, delay: number, remaining: number) => {
+      const item = announcementFor(segments[index])
+      announce(item, delay)
+      const nextUp = nextUpFor(segments, index)
+      if (nextUp) announcePhrase(item, [NEXT_UP, nextUp], delay, remaining - COUNTDOWN_SECONDS)
+    },
+    [segments],
+  )
+
+  /**
    * Queue every remaining sound in the session on the audio clock, starting
    * from `remaining` seconds left in segment `index`. Countdown beeps whose
    * moment has already passed (resume mid-countdown) are skipped.
@@ -173,7 +194,7 @@ export function useSession(
         spokenRef.current !== index
       ) {
         spokenRef.current = index
-        announce(announcementFor(current))
+        announceSegment(index, 0, remaining)
       }
 
       const callsOn = clipsReadyRef.current && timeCallsEnabled()
@@ -201,11 +222,12 @@ export function useSession(
         else if (next.type === 'work') beepGo(boundary)
         else beepRest(boundary)
         if (clipsReadyRef.current) {
-          announce(next ? announcementFor(next) : FINISH_ANNOUNCEMENT, boundary)
+          if (next) announceSegment(i + 1, boundary, next.duration)
+          else announce(FINISH_ANNOUNCEMENT, boundary)
         }
       }
     },
-    [segments],
+    [segments, announceSegment],
   )
 
   /** Re-anchor all pending sound to the current wall-clock position. */

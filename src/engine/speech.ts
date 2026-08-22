@@ -10,7 +10,7 @@
  * but utterances have no clock, so a fallback announcement is fired from a
  * timer and simply doesn't happen while the tab is throttled.
  */
-import { playBuffer } from './audio'
+import { clipBounds, playBuffer } from './audio'
 import { cachedClip, clipFor, type ClipItem } from './clips'
 
 const KEY = 'crossfitclock.voice.v1'
@@ -183,6 +183,49 @@ export function announce(item: ClipItem, delay = 0): void {
     // who is counting on it to decide when to drop out.
     else if (item.kind !== 'call') fallback(item.text, left)
   })
+}
+
+/** Breath between the words of a phrase: spoken end to spoken onset. */
+const PHRASE_GAP = 0.15
+
+/**
+ * Continue `lead`'s announcement with more words — "Rest", then "Next up is",
+ * "Burpees" — `delay` seconds from now, provided the last of them has ended
+ * within `room` seconds of that. Words are placed by where the speech sits
+ * inside each clip (`clipBounds`): a synthesized clip is padded, so going by
+ * buffer length would leave a second of dead air between words.
+ *
+ * Clip-only and all-or-nothing: it plays when every clip is decoded and the
+ * phrase fits, and is otherwise dropped without a fallback. The lead itself
+ * is the caller's to announce, fallback included — this only adds to it. A
+ * phrase half-said by the browser voice, or one that talks over the countdown
+ * ticks, is worse than the phase word alone. Returns whether it was scheduled.
+ */
+export function announcePhrase(
+  lead: ClipItem,
+  words: ClipItem[],
+  delay: number,
+  room: number,
+): boolean {
+  const items = [lead, ...words]
+  if (!items.every(speaks)) return false
+  const clips: AudioBuffer[] = []
+  for (const item of items) {
+    const clip = cachedClip(item)
+    if (!clip) return false
+    clips.push(clip)
+  }
+  const starts: number[] = []
+  let end = delay + clipBounds(clips[0]).end
+  for (const clip of clips.slice(1)) {
+    const { onset, end: spoken } = clipBounds(clip)
+    const at = end + PHRASE_GAP - onset
+    starts.push(at)
+    end = at + spoken
+  }
+  if (end - delay > room) return false
+  starts.forEach((at, i) => playBuffer(clips[i + 1], Math.max(0, at)))
+  return true
 }
 
 /**

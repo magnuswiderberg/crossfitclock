@@ -52,7 +52,7 @@ export function VoiceToggle() {
           if (on) void initAudio().then(sampleVoice)
         }}
         name="Voice announcements"
-        hint="Names each interval as it starts."
+        hint="Names each interval as it starts, and what's next at a rest."
       />
       <Option
         checked={calls}
