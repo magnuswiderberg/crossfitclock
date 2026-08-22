@@ -42,7 +42,7 @@
             "name": "Why can't I hear the beeps on my iPhone?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "iOS mutes web audio while the ringer switch is set to silent. Flip the switch off silent and the beeps come back. This is the trade-off for the timer mixing with your music instead of pausing it."
+              "text": "iOS mutes web audio while the phone is on silent — the ringer switch, or Silent Mode in Control Center on newer iPhones. Take it off silent and the beeps come back. This is the trade-off for the timer mixing with your music instead of pausing it."
             }
           },
           {
@@ -50,7 +50,7 @@
             "name": "How do I share a workout with someone?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Open the workout and tap Share. You get a four-character code. Anyone taps Add from share code on their own home screen, types the code, and the whole workout lands on their phone. They need no account."
+              "text": "Open the workout and tap Share. You get a four-character code. Anyone taps Add from share code on their own home screen, types the code, and the whole workout lands on their phone. They need no account — sharing needs a sync handle, adding from a code doesn't."
             }
           },
           {
@@ -98,9 +98,13 @@
           reading a number.
         </p>
         <p>
-          <strong>Tap anywhere to pause.</strong> Tapping again resumes. The bar along the
-          bottom shows what's coming next, and the arrow on it skips ahead. The row of plates
-          above it is your round progress.
+          <strong>Tap anywhere to pause.</strong> The pause screen has Resume, Restart and End
+          workout, and the sound switches. The bar along the bottom shows what's coming next,
+          and the arrow on it skips ahead. The row of plates above it is your round progress.
+        </p>
+        <p class="doc-note">
+          The phone's back button or gesture pauses the clock first; a second press ends the
+          session. From any other screen it takes you home rather than out of the app.
         </p>
       </section>
 
@@ -108,11 +112,11 @@
         <h2>Installing it</h2>
         <p>
           It's a website until you add it to your home screen, and an app afterwards:
-          full-screen, no browser chrome, no signal required.
+          full-screen, no browser bars, works offline.
         </p>
         <h3>iPhone and iPad</h3>
         <ol>
-          <li>Open <a href="/app/">the clock</a> in Safari (not Chrome — iOS only installs from Safari).</li>
+          <li>Open <a href="/app/">the clock</a> in Safari.</li>
           <li>Tap the Share button.</li>
           <li>Choose <strong>Add to Home Screen</strong>.</li>
         </ol>
@@ -123,37 +127,50 @@
           <li>Choose <strong>Install app</strong>. Chrome often offers this on its own.</li>
         </ol>
         <p class="doc-note">
-          The installed app keeps its own storage, separate from the browser's. If you added
-          workouts in the browser before installing, they won't follow you across — set up
-          <a href="#sync">sync</a> and they will.
+          On iPhone the installed app keeps its own storage, separate from Safari's. If you
+          added workouts in Safari before installing, they won't follow you across — set up
+          <a href="#sync">sync</a> and they will. (On Android the installed app and Chrome share
+          one storage, so nothing is lost.)
         </p>
       </section>
 
       <section id="sound">
         <h2>Sound</h2>
-        <h3>The silent switch (iPhone)</h3>
+        <h3>Silent mode (iPhone)</h3>
         <p>
-          <strong>If you hear nothing on an iPhone, check the ringer switch.</strong> iOS mutes
-          this kind of audio whenever the phone is set to silent, and no website can detect the
-          switch or override it.
+          <strong>If you hear nothing on an iPhone, check that it isn't on silent.</strong> iOS
+          mutes this kind of audio whenever the phone is in Silent Mode — the ringer switch on
+          older iPhones, Control Center on the ones with an Action button — and no website can
+          detect that or override it.
         </p>
         <p>
           That's a deliberate trade: the timer asks the system for audio that <em>mixes</em>
           with whatever else is playing, so your music keeps going underneath the beeps instead
-          of being paused or ducked between every round. The cost of mixing is obeying the
-          silent switch.
+          of being paused or ducked between every round. The cost of mixing is obeying
+          Silent Mode.
         </p>
         <h3>Voice announcements</h3>
         <p>
-          Each interval is called as it begins — "Work", "Rest", or the exercise name you typed.
-          If you called an interval "Wall balls", the clock says <em>wall balls</em>.
+          Off until you switch them on — the switch is on each workout's page, and on the pause
+          screen. Each interval is then called as it begins — "Work", "Rest", or the exercise
+          name you typed. If you called an interval "Wall balls", the clock says
+          <em>wall balls</em>.
+        </p>
+        <p>
+          A rest that leads into a <em>different</em> exercise names it — "Rest … next up is …
+          wall balls" — so a Tabata of burpees just says "Rest", while a circuit calls each
+          station before you get there. It only fits when the rest is long enough for the words
+          to land before the countdown beeps, about five seconds and up; shorter rests keep
+          "Rest" alone.
         </p>
         <h3>Time calls</h3>
         <p>
-          Switched on separately, because numbers without the phase words is a real combination
-          when a group is working off one screen. During work intervals the clock counts
-          <em>up</em> in milestones — "thirty", "one minute", "one thirty" — and counts
-          <em>in</em> with "ten" and "five" near the end.
+          A second switch next to the first, separate because numbers without the phase words
+          is a real combination when a group is working off one screen. During work intervals
+          the clock counts <em>up</em> in milestones — "thirty", "one minute", "one thirty",
+          every half minute to five minutes and every minute to ten — and counts <em>in</em>
+          with "ten" and "five" near the end. The count-up stops fifteen seconds before the end
+          to leave room for the countdown, so intervals under 45 seconds get the countdown only.
         </p>
         <p>
           The two vocabularies never overlap on purpose, so a spoken number is never ambiguous:
@@ -164,7 +181,10 @@
         <h3>Bluetooth speakers</h3>
         <p>
           Beeps and announcements travel together, so connecting a speaker moves the whole clock
-          to it — not half of it, with the rest coming out of a phone in someone's pocket.
+          to it — not half of it, with the rest coming out of a phone in someone's pocket. The
+          one exception is the browser's own voice, which fills in for an exercise name that
+          hasn't been prepared yet (see <a href="#offline">Offline</a>) — that one the phone
+          may keep to itself.
         </p>
       </section>
 
@@ -193,6 +213,10 @@
           round. Rest after the whole set is separate. Trailing rest is trimmed, so a session
           always ends on effort rather than on a countdown nobody is watching.
         </p>
+        <p>
+          Presets are read-only. <strong>Copy</strong> opens a duplicate in the editor, and
+          saving lands you on the new workout's page, with Start and Share right there.
+        </p>
       </section>
 
       <section id="sharing">
@@ -201,12 +225,14 @@
           Open a workout and tap <strong>Share</strong>. You get a four-character code. Anyone
           taps <strong>Add from share code</strong> on their home screen, types it, and the whole
           workout arrives — every block, set and interval. They need no account, and there's
-          nothing to install first.
+          nothing to install first. Sharing itself needs a <a href="#sync">sync handle</a> —
+          that's what makes your codes yours to list and delete — and presets can't be shared
+          as they are: copy one and share the copy.
         </p>
         <p>
-          The code stays on screen while the workout runs and again, in full size with a QR
-          code, when it finishes. A class working off one clock can take the session home
-          without anyone writing anything down.
+          The code sits in the corner while the workout runs, and again in full size with a QR
+          code when it finishes — as long as the workout still matches what was shared. A class
+          working off one clock can take the session home without anyone writing anything down.
         </p>
         <p class="doc-note">
           <strong>A share is a snapshot, not a live link.</strong> Editing a workout you've
@@ -214,7 +240,10 @@
           added it only get the new version when they tap <strong>Update from share</strong>.
           Your workout's page tells you when the two have drifted apart.
         </p>
-        <p>Your codes are listed, and revocable, on the Sync screen.</p>
+        <p>
+          Your codes are listed under <strong>Shared codes</strong> on the Sync screen, where
+          Delete stops a code from working.
+        </p>
       </section>
 
       <section id="sync">
@@ -238,11 +267,11 @@
           phase words and all the spoken numbers are stored on the device.
         </p>
         <p>
-          The one exception is an exercise name you typed yourself: its audio is prepared the
-          first time you save or run that workout online, and cached from then on. Run a new
-          workout once with a connection and it's yours for good — and if it hasn't been
-          prepared yet, the clock falls back to your browser's own voice rather than going
-          quiet.
+          The one exception is an exercise name you typed yourself: its audio is prepared when
+          you save the workout, add it from a code or open its page while online, and cached
+          from then on — and retried each time you open or start it, in case it didn't arrive.
+          Open a new workout once with a connection and it's yours for good; until then the
+          clock falls back to your browser's own voice rather than going quiet.
         </p>
       </section>
 
@@ -255,7 +284,7 @@
           countdown itself never stopped.
         </p>
         <h3>I hear nothing at all on an iPhone</h3>
-        <p>The ringer switch is on silent. See <a href="#sound">Sound</a> above.</p>
+        <p>The phone is on silent. See <a href="#sound">Sound</a> above.</p>
         <h3>The screen keeps going dark</h3>
         <p>
           The clock asks the phone to stay awake while a session runs. If the browser refuses —
@@ -268,10 +297,11 @@
           on load, so a reload or a phone restart drops you back into the clock where it
           genuinely is by then, not where it was when you left.
         </p>
-        <h3>A code says nothing was shared</h3>
+        <h3>A code says no shared workout was found</h3>
         <p>
-          Either it was revoked, or a character was misread. Codes avoid the ambiguous
-          characters, so there's no O/0 or I/1 confusion to worry about — ask for it again.
+          Either whoever shared it deleted the code, or a character was misread. Codes avoid the
+          ambiguous characters — no O or 0, no I, L or 1 — so ask for it again. If a workout you
+          added reports that its code isn't shared any more, your copy stays yours to keep.
         </p>
       </section>
 

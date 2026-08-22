@@ -250,8 +250,8 @@ main > section,
 }
 
 /* ---------- features ---------- */
-/* Two columns, not auto-fit: four cards across a 1040px page fit three per row
-   and leave the fourth stranded on its own. */
+/* Two columns, not auto-fit: auto-fit across a 1040px page fits three per row
+   and strands the leftovers. The odd card out spans the row (.feature-wide). */
 .features {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -274,6 +274,41 @@ main > section,
   margin-top: 12px;
   color: #cbc8c3;
   font-size: 15.5px;
+}
+
+/* Five cards in two columns would leave the last one alone in the left column,
+   so it spans the row with the heading beside the text. It's the colour card,
+   so its accent is all four phase colours in hard bands, like the plate bar. */
+.feature-wide {
+  position: relative;
+  overflow: hidden;
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr);
+  gap: 12px 32px;
+  align-items: start;
+  border-top: 0;
+  padding-top: 30px;
+}
+
+.feature-wide::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--work) 0 25%,
+    var(--rest) 25% 50%,
+    var(--prep) 50% 75%,
+    var(--done) 75%
+  );
+}
+
+.feature-wide p {
+  margin-top: 0;
 }
 
 /* ---------- formats ----------
@@ -720,5 +755,13 @@ main > section,
     justify-self: start;
     align-self: start;
     padding: 24px 32px 20px;
+  }
+
+  .feature-wide {
+    grid-template-columns: 1fr;
+  }
+
+  .feature-wide p {
+    margin-top: 12px;
   }
 }

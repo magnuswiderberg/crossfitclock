@@ -106,8 +106,9 @@ is cast to a TV or projector in the box.
 never sees marketing. Scope stays `/` so the landing page can carry the install
 prompt.
 
-The social card at `public/og-image.png` is a rendered 1200×630 PNG — most
-scrapers reject SVG. It is excluded from the service worker's precache: it
+The social card at `public/og-image.png` is a 1200×630 PNG rendered from
+`scripts/og-card.html` by `scripts/build-og.ps1` — most scrapers reject SVG,
+and the card repeats the hero's headline, so re-render it when that changes. It is excluded from the service worker's precache: it
 exists for link previews, never for a phone in a gym. The `/c/` pages carry the
 same generic card deliberately, so a pasted code link previews as the app
 instead of naming somebody's workout.
@@ -163,9 +164,9 @@ recipients need no account. The page is static HTML that reads the code out of
 
 ## SEO
 
-The h1 stays brand ("The whole screen is the timer") — keyword-stuffing an h1
-is a weak signal and it's the best line on the page. The terms live where they
-read naturally instead: the title and meta description, the lede, and a
+The h1 stays brand ("The clock that coaches" — the voice is the pitch, the
+colour system is the look) — keyword-stuffing an h1 is a weak signal. The terms
+live where they read naturally instead: the title and meta description, the lede, and a
 **formats section** (Tabata, EMOM, AMRAP, circuits, holds) that is genuinely
 useful as well as keyword-bearing. `WebApplication` JSON-LD on the landing page,
 `FAQPage` on `/help`.

@@ -129,6 +129,7 @@ Notes for development:
 - Workouts are stored under the localStorage key `crossfitclock.workouts.v1`. Clearing site data reseeds the presets.
 - Voice announcements play as audio clips. The fixed vocabulary ships in `src/audio/` and needs nothing — the phase words, "Next up is" and every time-call number — so presets and time calls announce with no backend at all. Only a custom exercise label goes to `/api/speech`, which needs a `SPEECH_KEY` in `api/local.settings.json` — read one with `az cognitiveservices account keys list --name mwse-speech --resource-group rg-common --query key1 -o tsv`. Leave it empty and that label falls back to the browser's own voice, which is also the offline path, so it's worth exercising both ways. Time calls deliberately have no fallback: a late number is worse than a missing one.
 - Regenerate the bundled clips with `scripts/build-audio.ps1` (needs `az` login). Its word list and the `WORDS` table in `src/engine/timecalls.ts` must stay in step — the file names are the words with spaces turned into dashes.
+- Regenerate the social card (`public/og-image.png`) with `scripts/build-og.ps1` after editing `scripts/og-card.html` — it repeats the landing page's headline, so change both together. Renders with Playwright's headless Chromium if present, else Chrome/Edge.
 - To test on a phone on your network: `npm run dev -- --host`, then open the printed network URL. Wake lock and PWA install require HTTPS or localhost, so from another device those features may be unavailable in dev.
 
 ## Project structure

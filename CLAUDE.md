@@ -119,8 +119,14 @@ https://claude.ai/code/artifact/f9493707-f78e-4004-8377-cba3b34e32bb
   `https://workout.magnuswiderberg.se`, and the one edit a domain move needs.
   `/app` and `/c/<CODE>` are `noindex`; the h1 on `/` stays brand, with the
   search terms carried by the title, lede and the formats section instead.
-  Rationale, and why native app stores were rejected:
+  The social card `public/og-image.png` repeats the h1, so it is rendered
+  from `scripts/og-card.html` by `scripts/build-og.ps1` — re-run after a
+  headline change. Rationale, and why native app stores were rejected:
   `docs/distribution-plan.md`.
+- **English only** (decided 2026-08-22): the site, the app and the voice
+  clips. Swedish, if it ever happens, is separate pages — never mixed
+  sentences — so nothing in the copy or the clip vocabulary should hedge
+  toward bilingual.
 - Share code **7K4M is a real, seeded share** (the example printed on the
   landing page and carried in the finish-screen QRs), written by
   `api/scripts/seed-share.mjs` from `deploy.ps1`. Its `owner` is `__seed__`,

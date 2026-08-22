@@ -7,7 +7,7 @@
     <title>Interval Timer for Tabata, EMOM &amp; CrossFit — CrossFit Clock</title>
     <meta
       name="description"
-      content="A free interval timer built for the gym. Read it from across the room, hear your own exercises called out by name, and run it with no signal. Tabata, EMOM, AMRAP."
+      content="A free interval timer that shouts the workout: exercises called by name, time counted out loud, a screen you can read from across the gym. Works offline. Tabata, EMOM, AMRAP."
     />
     <link rel="canonical" href="%SITE_URL%/" />
     <meta property="og:type" content="website" />
@@ -49,7 +49,8 @@
           "Colour-coded full-screen display readable from across the gym",
           "Spoken exercise names and time calls",
           "Works offline as an installable web app",
-          "Share workouts with a four-character code"
+          "Share workouts with a four-character code",
+          "Sync workouts between devices with a handle and sync code"
         ]
       }
     </script>
@@ -65,17 +66,18 @@
     <main>
       <section class="hero">
         <div class="hero-copy">
-          <h1>The whole screen is the timer.</h1>
+          <h1>The clock that coaches.</h1>
           <p class="lede">
-            A free interval timer for Tabata, EMOM, AMRAP and CrossFit sessions — built to be
-            read from three metres away, mid-burpee, by ten people at once. Colour announces
-            the phase before you've read anything.
+            A free interval timer for Tabata, EMOM, AMRAP and CrossFit sessions. It shouts the
+            workout at you — "Work", your exercises by name, the time as it passes — and the
+            whole screen changes colour with the phase, so you can read it from across the gym.
+            Not that you'll have to.
           </p>
           <div class="cta-row">
             <a class="btn btn-primary btn-lg" href="/app/">Start a workout</a>
             <a class="btn btn-lg" href="#install">Add it to your phone</a>
           </div>
-          <p class="fine">Free · no account · works with no signal</p>
+          <p class="fine">Free · no account · works offline</p>
         </div>
 
         <div class="demo-wrap" aria-hidden="true">
@@ -94,21 +96,12 @@
 
       <section class="features">
         <article class="feature" style="--accent: var(--work)">
-          <h2>Colour is the signal</h2>
-          <p>
-            Red is work, teal is rest, amber is get-ready, green is done. A dark fill drains
-            down the screen as the interval runs, and the last two seconds flash in time with
-            the beeps. You can call it from the far end of the gym without reading a number.
-          </p>
-        </article>
-
-        <article class="feature" style="--accent: var(--rest)">
           <h2>It calls your exercises by name</h2>
           <p>
             Type "Wall balls" into an interval and the clock says <em>wall balls</em> when it
-            starts. Not a beep you have to interpret, and not a screen you have to find — the
-            workout you wrote runs itself, and everyone hears what's next while their hands
-            are still on the bar.
+            starts — and on the rest before it, "Rest. Next up is wall balls." Not a beep you
+            have to interpret, and not a screen you have to find: the workout you wrote runs
+            itself, and everyone hears what's coming while their hands are still on the bar.
           </p>
         </article>
 
@@ -130,6 +123,28 @@
             clock.
           </p>
         </article>
+
+        <article class="feature" style="--accent: var(--rest)">
+          <h2>Share with a code, sync with a handle</h2>
+          <p>
+            Share a workout and it gets a four-character code anyone can type into their own
+            clock, account or not. Claim a handle and your own workouts follow you between
+            devices: build on the laptop, run on the phone. No email, no password, and none of
+            it is needed to use the timer.
+          </p>
+        </article>
+
+        <!-- Last on purpose: it's the look rather than a reason to install, and
+             the demo above has already shown it. Full-width because five cards in
+             two columns would strand it alone on the left. -->
+        <article class="feature feature-wide">
+          <h2>Colour is the signal</h2>
+          <p>
+            Red is work, teal is rest, amber is get-ready, green is done. A dark fill drains
+            down the screen as the interval runs, and the last two seconds flash in time with
+            the beeps. You can call it from the far end of the gym without reading a number.
+          </p>
+        </article>
       </section>
 
       <section class="formats" id="formats">
@@ -149,7 +164,7 @@
           </div>
           <div class="format">
             <dt>AMRAP</dt>
-            <dd>One long interval and a rep scheme in the notes. The clock just holds the window.</dd>
+            <dd>One long interval and the rep scheme in the description. The clock just holds the window.</dd>
           </div>
           <div class="format">
             <dt>Circuits</dt>
@@ -187,10 +202,10 @@
       </section>
 
       <section class="install" id="install">
-        <h2>Add it to your phone — then forget about the signal</h2>
+        <h2>Add it to your phone. It works offline.</h2>
         <p class="formats-lede">
-          Installed, it opens full-screen with no browser chrome and every preset runs with no
-          network at all. A session that gets interrupted picks up where the clock actually is,
+          Installed, it opens full-screen like an app, and every preset runs with no network
+          at all. A session that gets interrupted picks up where the clock actually is,
           not where it was when the screen went dark.
         </p>
         <div class="install-grid">
@@ -202,8 +217,9 @@
               <li>Choose <strong>Add to Home Screen</strong>.</li>
             </ol>
             <p class="fine">
-              One thing worth knowing: iOS mutes web audio while the ringer switch is set to
-              silent. Flip the switch off silent and the beeps come back.
+              One thing worth knowing: iOS mutes web audio while the phone is on silent — the
+              ringer switch, or Silent Mode in Control Center on newer iPhones. Take it off
+              silent and the beeps come back.
             </p>
           </div>
           <div class="install-card">
@@ -222,7 +238,10 @@
 
       <section class="closing">
         <h2>Pick one, hit start.</h2>
-        <p>Tabata and a few other presets are already in there. Build your own when you want to.</p>
+        <p>
+          Tabata and a few other presets are already in there. Build your own when you want to.
+          The clock does the talking.
+        </p>
         <a class="btn btn-primary btn-lg" href="/app/">Open the clock</a>
       </section>
     </main>
