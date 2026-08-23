@@ -32,6 +32,11 @@
       if (matchMedia('(display-mode: standalone)').matches || navigator.standalone)
         location.replace('/app/')
     </script>
+    <!-- The fonts are font-display: block (src/tokens.css); preloading keeps that wait to one round trip, and in the app the worker answers it from cache. -->
+    <link rel="preload" href="/src/fonts/anton-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/src/fonts/archivo-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/src/fonts/archivo-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/src/fonts/archivo-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/src/site/site.css" />
     <script type="application/ld+json">
       {

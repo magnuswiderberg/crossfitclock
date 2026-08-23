@@ -17,8 +17,8 @@ features, local dev instructions, and project structure.
 green), a dark fill drains down as the segment elapses, and the final-2s
 countdown flashes the screen in sync with the beeps. Round progress uses a
 plate-segment bar (borrowed from a rejected "Plates" direction). Editor is a
-clean dark UI. Fonts: Anton (display/digits), Archivo (UI), self-hosted via
-Fontsource. All tokens live in `src/styles.css`.
+clean dark UI. Fonts: Anton (display/digits), Archivo (UI), self-hosted from
+`src/fonts/`. All tokens live in `src/tokens.css`.
 
 Design pitch with all three explored directions:
 https://claude.ai/code/artifact/f9493707-f78e-4004-8377-cba3b34e32bb
@@ -221,6 +221,18 @@ https://claude.ai/code/artifact/f9493707-f78e-4004-8377-cba3b34e32bb
   pushed history entry in `App.tsx` — back returns to home from any screen
   instead of leaving the app. During a run, the first back pauses the clock
   (the entry is re-pushed); a second back ends the session like Exit.
+- **Fonts** (2026-08-23): Anton 400 and Archivo 400/600/700 are vendored as
+  latin-only woff2 in `src/fonts/`, with the `@font-face` rules owned by
+  `src/tokens.css` — `font-display: block`, not Fontsource's `swap`, which
+  painted every launch in Arial Narrow and then jumped to Anton. All four HTML
+  entries preload them (Vite rewrites the `/src/fonts/…` hrefs to the same
+  hashed URLs the CSS uses) and the service worker precaches them (`woff2` in
+  `globPatterns`) — they were the one asset left out, so every launch fetched
+  them over the network. Hashed `/assets/*` get `Cache-Control: immutable`
+  from a headers route in `public/staticwebapp.config.json`; SWA's default is
+  `must-revalidate, max-age=30` on everything, one revalidation round trip per
+  launch. Lighthouse flags `block`, but with the preload the cold-visit wait is
+  a single round trip, and a brief blank beats a digit font that swaps.
 
 ## Working notes
 

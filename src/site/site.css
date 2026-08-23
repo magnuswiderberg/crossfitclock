@@ -1,8 +1,4 @@
 @import '../tokens.css';
-@import '@fontsource/anton/index.css';
-@import '@fontsource/archivo/400.css';
-@import '@fontsource/archivo/600.css';
-@import '@fontsource/archivo/700.css';
 
 /* ---------- static site pages ----------
    The landing page (/) and the share-code page (/c/<CODE>). Deliberately

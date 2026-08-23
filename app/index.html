@@ -7,6 +7,11 @@
     <!-- The app is the product, not a page to be indexed; / is what should rank. -->
     <meta name="robots" content="noindex" />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <!-- The fonts are font-display: block (src/tokens.css); preloading keeps that wait to one round trip, and in the app the worker answers it from cache. -->
+    <link rel="preload" href="/src/fonts/anton-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/src/fonts/archivo-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/src/fonts/archivo-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/src/fonts/archivo-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin />
     <title>CrossFit Clock</title>
   </head>
   <body>

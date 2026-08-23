@@ -3,7 +3,8 @@
   "routes": [
     { "route": "/app", "rewrite": "/app/index.html" },
     { "route": "/help", "rewrite": "/help/index.html" },
-    { "route": "/c/*", "rewrite": "/c/index.html" }
+    { "route": "/c/*", "rewrite": "/c/index.html" },
+    { "route": "/assets/*", "headers": { "Cache-Control": "public, max-age=31536000, immutable" } }
   ],
   "navigationFallback": {
     "rewrite": "/index.html",

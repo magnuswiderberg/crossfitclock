@@ -83,9 +83,11 @@ export default defineConfig({
       injectRegister: null,
       // The announcement clips must be precached, not just cacheable: the
       // fixed vocabulary is the whole reason a preset can run offline without
-      // touching /api/speech. Workbox's default pattern list has no mp3.
+      // touching /api/speech. Workbox's default pattern list has no mp3 — and
+      // no woff2, which left the fonts as the one asset fetched over the
+      // network on every launch, painting the digits in the fallback first.
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,mp3}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,mp3,woff2}'],
         // The social card is for scrapers, never for a phone in a gym.
         globIgnores: ['**/og-image.png'],
         // Once the worker is installed, the navigation fallback answers *every*
