@@ -199,9 +199,10 @@ handle and revoke the egg. Seeding failure is a warning, never a failed deploy.
   the canonical and Open Graph tags are substituted into the static pages at
   build time (`%SITE_URL%`); scrapers don't run JS, so those have to be absolute
   and can't be filled in from `location`.
-- **Move the install and silent-switch explanations to the landing page.** They
-  currently have to interrupt people inside the app (`InstallHint.tsx`,
-  `SilentHint.tsx`); the landing page is where that content wants to live.
+- **Move the install and silent-switch explanations to the landing page.**
+  Done (2026-08-23): the landing page has the install section, `/help/#install`
+  and `/help/#sound` the full versions, and the in-app hints (`InstallHint.tsx`,
+  `SilentHint.tsx`) are down to one sentence and a link to those.
 - **A demo video of the time calls.** Ten people on one plank, a voice calling
   "thirty… one minute" while nobody can look at a screen. It's the feature the
   other hundred timers don't have, and it's 20 seconds long. Reddit

@@ -4,7 +4,12 @@
  * ambient audio while Silent Mode is on — and the web offers no way to detect
  * the switch, so all we can do is tell the user once (and keep the tip
  * reachable from the home screen).
+ *
+ * One sentence and a link: the rest of the explanation lives on the help
+ * page — see `HelpLink` for why the sentence has to stand on its own.
  */
+import { HelpLink } from './HelpLink'
+
 // v2: v1 flags were set by merely browsing the hint via the home-screen link
 // (fixed to no longer dismiss the gate), so start fresh.
 const KEY = 'crossfitclock.silenthint.v2'
@@ -40,13 +45,10 @@ export function SilentHintModal({ onClose }: { onClose: () => void }) {
       <div className="hint-card">
         <h2 id="hint-title">Hear the beeps</h2>
         <p>
-          Your iPhone <strong>mutes the timer beeps while Silent Mode is on</strong>. Before you
-          start, flip the ring/silent switch — or turn off Silent Mode in Control Center.
+          Your iPhone <strong>mutes the beeps while Silent Mode is on</strong> — flip the
+          ring/silent switch, or turn it off in Control Center, before you start.
         </p>
-        <p>
-          Music from Spotify or YouTube keeps playing at full volume; the beeps simply mix in on
-          top.
-        </p>
+        <HelpLink section="sound">More about sound in the help page</HelpLink>
         {/* Marking the hint as seen is the caller's business: only the
             Start-tap gate dismisses it for good — reopening it from the
             home-screen link shouldn't. */}

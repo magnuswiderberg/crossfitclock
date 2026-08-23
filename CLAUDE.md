@@ -258,3 +258,9 @@ https://claude.ai/code/artifact/f9493707-f78e-4004-8377-cba3b34e32bb
   `crossfitclock.silenthint.v2`) gates the first Start tap and stays
   reachable via a "Beeps & Silent Mode" link on the home screen (which
   deliberately does not mark the hint as seen).
+- The in-app hints (`SilentHint.tsx`, and the manual install instructions in
+  `InstallHint.tsx`) are one sentence plus a link to the matching `/help/#…`
+  section (`src/ui/HelpLink.tsx`, trimmed 2026-08-23); the full explanations
+  live on the help page. The link opens in a new tab — on an installed iPhone
+  app that is Safari's sheet, whose cache is not the app's — so offline it may
+  not load, and the one sentence has to stand on its own.

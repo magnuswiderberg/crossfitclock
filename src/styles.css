@@ -372,6 +372,13 @@ input[type='number'] {
   font-weight: 600;
 }
 
+/* The "more in the help page" line under a hint's one essential sentence. */
+.hint-card .hint-more a {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .hint-card .btn {
   margin-top: 6px;
   padding: 14px;

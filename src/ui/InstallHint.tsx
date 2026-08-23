@@ -10,6 +10,7 @@
  * of the screen afterwards. They swap live via the shared listener set.
  */
 import { useEffect, useState } from 'react'
+import { HelpLink } from './HelpLink'
 import { isIos } from './SilentHint'
 
 const KEY = 'crossfitclock.installhint.v1'
@@ -93,29 +94,18 @@ function InstructionsModal({ onClose }: { onClose: () => void }) {
     <div className="hint-overlay" role="dialog" aria-modal="true" aria-labelledby="install-title">
       <div className="hint-card">
         <h2 id="install-title">Install the app</h2>
-        <p>
-          Installed, the timer runs <strong>full screen without browser bars</strong>, works
-          offline, and opens straight from your home screen.
-        </p>
         {isIos() ? (
-          <>
-            <p>
-              In <strong>Safari</strong>, tap the <strong>Share</strong> button (the square with an
-              arrow pointing up), then choose <strong>Add to Home Screen</strong>.
-            </p>
-            <p>
-              The installed app keeps its own workout list, separate from Safari&rsquo;s — install
-              before building your library, or move workouts over with a sync code from the Sync
-              screen.
-            </p>
-          </>
+          <p>
+            In <strong>Safari</strong>, tap the <strong>Share</strong> button, then{' '}
+            <strong>Add to Home Screen</strong>.
+          </p>
         ) : (
           <p>
             Open your browser&rsquo;s menu and choose <strong>Install app</strong> (sometimes
-            called <strong>Add to Home screen</strong>). In desktop Chrome or Edge, use the
-            install icon at the right end of the address bar.
+            called <strong>Add to Home screen</strong>).
           </p>
         )}
+        <HelpLink section="install">More about installing in the help page</HelpLink>
         <button className="btn btn-primary" onClick={onClose}>
           Got it
         </button>
