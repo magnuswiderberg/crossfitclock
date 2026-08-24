@@ -10,6 +10,7 @@ import {
   normalizeCode,
 } from '../model/share'
 import { WorkoutOutline } from './WorkoutOutline'
+import { HelpFooterLink } from './HelpLink'
 
 interface Props {
   workouts: Workout[]
@@ -117,6 +118,7 @@ export function ImportScreen({ workouts, onAdd, onBack }: Props) {
           )}
         </>
       )}
+      <HelpFooterLink section="sharing">How sharing works</HelpFooterLink>
     </div>
   )
 }

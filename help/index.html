@@ -29,6 +29,18 @@
     <link rel="preload" href="/src/fonts/archivo-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/src/fonts/archivo-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/src/site/site.css" />
+    <script>
+      // Framed inside the app's Help overlay: flag the root so site.css can
+      // drop the site chrome (nav, footer, open-the-app CTA), and unwrap
+      // links into the app — the reader is already there. Runs before paint
+      // so the chrome never flashes.
+      if (self !== top) {
+        document.documentElement.classList.add('embedded')
+        addEventListener('DOMContentLoaded', () => {
+          document.querySelectorAll('a[href^="/app"]').forEach((a) => a.replaceWith(...a.childNodes))
+        })
+      }
+    </script>
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",

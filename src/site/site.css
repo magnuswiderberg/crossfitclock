@@ -761,3 +761,17 @@ main > section,
     margin-top: 12px;
   }
 }
+
+/* Framed inside the app's Help overlay (the inline script in help/index.html
+   adds .embedded when the page is not the top window): the app supplies its
+   own chrome and the reader is already in the clock, so the site nav, the
+   footer and the open-the-app closer disappear. */
+.embedded .site-nav,
+.embedded .site-foot,
+.embedded .closing {
+  display: none;
+}
+
+.embedded .doc > h1 {
+  display: none;
+}

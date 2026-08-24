@@ -428,6 +428,56 @@ input[type='number'] {
   color: var(--text);
 }
 
+/* The help page framed inside the app (HelpOverlay). Near-fullscreen — it is
+   a document to read, not an alert. */
+.help-overlay {
+  padding: 12px;
+  z-index: 30; /* above a hint modal, which can open it */
+}
+
+.help-card {
+  margin: auto;
+  width: min(720px, 100%);
+  height: 100%;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.help-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 8px 8px 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.help-card-head h2 {
+  font-family: var(--display);
+  font-size: 20px;
+  letter-spacing: 0.04em;
+  font-weight: 400;
+  text-transform: uppercase;
+}
+
+/* iOS expands a bare iframe to its content height; absolute-in-relative pins
+   it to the card so the page scrolls inside itself. */
+.help-card-body {
+  position: relative;
+  flex: 1;
+}
+
+.help-card-body iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
 /* ---------- run screen ---------- */
 .run {
   position: fixed;

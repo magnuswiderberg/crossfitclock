@@ -5,6 +5,7 @@ import { initAudio } from '../engine/audio'
 import { primeSpeech } from '../engine/speech'
 import { SilentHintModal, isIos } from './SilentHint'
 import { InstallHint, InstallLink } from './InstallHint'
+import { HelpFooterLink } from './HelpLink'
 
 interface Props {
   workouts: Workout[]
@@ -100,6 +101,7 @@ export function HomeScreen({ workouts, onStart, onInspect, onNew, onImport, onSy
           Beeps &amp; Silent Mode
         </button>
       )}
+      <HelpFooterLink>Help &amp; tips</HelpFooterLink>
       {showHint && <SilentHintModal onClose={() => setShowHint(false)} />}
     </div>
   )

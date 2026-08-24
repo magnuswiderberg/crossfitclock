@@ -8,6 +8,7 @@ import {
   syncNow,
 } from '../model/sync'
 import { deleteShare, forgetShareLink, listShares, type ShareInfo } from '../model/share'
+import { HelpFooterLink } from './HelpLink'
 
 interface Props {
   workouts: Workout[]
@@ -172,6 +173,7 @@ export function SyncScreen({ workouts, onWorkoutsChange, onBack }: Props) {
             </p>
           )
         )}
+        <HelpFooterLink section="sync">How sync works</HelpFooterLink>
       </div>
     )
   }
@@ -251,6 +253,7 @@ export function SyncScreen({ workouts, onWorkoutsChange, onBack }: Props) {
       >
         {busy ? 'Working…' : 'Connect and sync'}
       </button>
+      <HelpFooterLink section="sync">How sync works</HelpFooterLink>
     </div>
   )
 }

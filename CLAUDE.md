@@ -261,6 +261,13 @@ https://claude.ai/code/artifact/f9493707-f78e-4004-8377-cba3b34e32bb
 - The in-app hints (`SilentHint.tsx`, and the manual install instructions in
   `InstallHint.tsx`) are one sentence plus a link to the matching `/help/#…`
   section (`src/ui/HelpLink.tsx`, trimmed 2026-08-23); the full explanations
-  live on the help page. The link opens in a new tab — on an installed iPhone
-  app that is Safari's sheet, whose cache is not the app's — so offline it may
-  not load, and the one sentence has to stand on its own.
+  live on the help page. Help links open an in-app overlay
+  (`src/ui/HelpOverlay.tsx`, added 2026-08-24): an iframe of `/help/#…`, which
+  the service worker answers from precache, so it works offline — the old
+  `target="_blank"` tab on an installed iPhone was Safari's sheet, whose cache
+  is not the app's, and could not. The framed page hides its own site chrome
+  and unwraps its links into the app (`html.embedded`: inline script in
+  `help/index.html`, rules at the end of `src/site/site.css`); a modified
+  click still opens the real page in a tab. `HelpFooterLink` puts the same
+  overlay behind the quiet links at the bottom of the Home, Add-workout and
+  Sync screens.
